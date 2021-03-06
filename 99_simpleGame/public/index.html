@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>Index</title>
+
+<script src="jquery-3.3.1.min.js"></script>
+<script>
+
+$(document).ready(function(){
+
+	/*$('input:submit').on('click',function(evt){
+		evt.preventDefault();
+		console.log( 'submitting form with Ajax...' );
+		*/
+		$.ajax({
+		  type: "POST",
+		  url: "http://localhost:9999/",
+		  dataType: "json",
+		  data: JSON.stringify({
+								//todo: $('#the_text').val()
+								})
+		}).done(function ( data ) {
+			console.log( data );
+			
+			let elements = $();
+			for(let i=0; i<data.length;i++) {
+				elements = elements.add('<li>'+data[i].username + ': '+ data[i].bestScore +'</li>');
+			}
+			$('#todolist').empty();
+			$('#todolist').append(elements);     
+			//$('#the_text').val('');
+		});
+		
+	//});
+});	
+</script>
+</head>
+<body>
+    <h1>Highscore:</h1>
+<!--<h1>A simple 'To Do' list</h1>
+	-<form method="POST">
+	New thing to do:
+	<input type="text" id='the_text' name="todo"/>
+	<input type="submit" value="send"/>
+	</form>-->
+	
+	<div id="todolist"></div>
+</body>
+</html>	

@@ -1,0 +1,123 @@
+<html>
+<head>
+
+<style>
+#status {
+	height: 150px;
+}
+</style>
+<script src="jquery.js"></script>
+<script>
+
+$(document).ready(function() {
+	// initial state of the game
+	let state = {hp: 100, xp: 0, score: 0};
+	
+	let gameIsRunning = true;
+	
+	// the display that will show what happens
+            // skal laves om
+const status = $('#status')[0];
+            // skal laves om
+    $('#status').html('Your status is now: ' + JSON.stringify(state));
+	//status.innerHTML = 'Your status is now: ' + JSON.stringify(state);
+                    //`your hp is ${state.hp}, and ...`;
+	// skal laves om
+	const enterBtn = $('#enterBtn');	
+	const userInput = $('#userInput');		
+	
+	function quit(){
+        // skal laves om
+		$('#status').html( 'You logged out!<br/>');
+        $('#status').append('HighScore:');
+		//$('#status').html( 'HighScore: ...' + state.score); // to do
+        $.getJSON( "highscores.json ", function( data ) {
+        console.log( 'the result:' , data);
+      let items = [];
+      //$.each( data, function( key, val ) {items.push( "<li id='" + key + "'>" + val + "</li>" ); });
+        for (i in data) {
+             console.log( data[i].username + " test " +data[i].bestScore  );
+             
+            $('#status').append( "<li id='" + data[i].username + "'>" + data[i].username + " " + data[i].bestScore + "</li>" ); };
+        
+      /*      
+      $( "<ul/>", {
+        "class": "my-new-list",
+        html: items.join( "" )
+      }).appendTo( "body" );*/
+    });
+		gameIsRunning = false;
+		enterBtn.disabled = true;
+	}
+	
+    $('#enterBtn').click(function(){
+		$('#status').html( 'Your status is now: ' + JSON.stringify(state));
+		
+		switch( $('#userInput')[0].value.toUpperCase() ){
+			case 'QUIT':{
+				quit();
+			} break;
+			case 'SEARCH':{
+				let dice = Math.floor(Math.random()*6)+1;
+				if (dice<=3){
+					$('#status').append( '<br/>you found something...');
+					dice = Math.floor(Math.random()*6)+1;
+					if (dice==1){
+						$('#status').append( '<br/>... a rosted chicken!');
+						state.hp += Math.floor(Math.random()*6)+1;
+					}
+					if (dice==2){
+						$('#status').append( '<br/>... some coins!');
+						state.score += Math.floor(Math.random()*6)+1;
+						state.xp += Math.floor(Math.random()*6)+1;
+					}
+					if (dice==3){
+						$('#status').append( '<br/>... poisonous mushroom!');
+						state.hp -= Math.floor(Math.random()*6)+1;
+						state.xp += 1;
+					}
+				} else {
+					$('#status').append('<br/>you found nothing.');
+				}
+			} break;
+			case 'KILL':{
+				let dice = Math.floor(Math.random()*6)+1;
+				if (dice<=2){
+					$('#status').append( '<br/>you killed a monster!');
+					state.hp -= Math.floor(Math.random()*6)+1;
+					state.xp += Math.floor(Math.random()*6)+1;
+					state.score += Math.floor(Math.random()*2);
+				} else {
+					$('#status').append( '<br/>you tried to kill a monster... no luck!');
+				}
+			} break;
+			default: {
+				$('#status').append( '<br/>...command not recognized...');
+			}
+		}
+	});
+	
+});
+</script>
+
+<title>Simple Game</title>
+</head>
+<body>
+	<h1>Simple Game</h1>
+	<p>
+
+		<p><h2>Situation</h2>
+		<div id="status">...</div>
+		</p>
+
+		<hr/>	
+
+		<b>What do you want to do? (search/kill/quit)</b>
+		<br/>
+		<input type="text" id="userInput"></input>
+		<button type="button" id="enterBtn">ENTER</button>
+
+	</p>
+	
+</body>
+</html>	

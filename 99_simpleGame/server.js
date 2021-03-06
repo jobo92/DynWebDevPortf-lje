@@ -48,8 +48,8 @@ route.for("GET","/jquery-3.3.1.min.js", function(request,response){
 });
 
 route.for("GET","/", function(request,response){
-	//serverStatic(response,"public/simpleGame_v2.html");
-    serverStatic(response,"public/index.html");
+	serverStatic(response,"public/simpleGame_v2.html");
+    //serverStatic(response,"public/index.html");
 });
 // serving static files - end
 

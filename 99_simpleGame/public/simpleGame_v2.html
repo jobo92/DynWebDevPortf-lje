@@ -14,7 +14,24 @@ $(document).ready(function() {
 	let state = {hp: 100, xp: 0, score: 0};
 	
 	let gameIsRunning = true;
-	
+	$.ajax({
+		  type: "POST",
+		  url: "http://localhost:9999/",
+		  dataType: "json",
+		  data: JSON.stringify({
+								//todo: $('#the_text').val()
+								})
+		}).done(function ( data ) {
+			console.log( data );
+			
+			let elements = $();
+			for(let i=0; i<data.length;i++) {
+				elements = elements.add('<li>'+data[i].username + ': '+ data[i].bestScore +'</li>');
+			}
+			$('#todolist').empty();
+			$('#todolist').append(elements);     
+			//$('#the_text').val('');
+		});
 	// the display that will show what happens
             // skal laves om
 const status = $('#status')[0];
@@ -104,6 +121,8 @@ const status = $('#status')[0];
 </head>
 <body>
 	<h1>Simple Game</h1>
+    <h1>Highscore:</h1>
+    <div id="todolist"></div>
 	<p>
 
 		<p><h2>Situation</h2>

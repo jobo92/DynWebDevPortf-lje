@@ -29,6 +29,10 @@ $(document).ready(function(){
 			$('#todolist').append(elements);     
 			//$('#the_text').val('');
 		});
+    
+        let username = prompt("Enter your username");
+        $("#userNameField").text("Your username is: " + username);
+        
 		
 	//});
 });	
@@ -44,5 +48,7 @@ $(document).ready(function(){
 	</form>-->
 	
 	<div id="todolist"></div>
+    <br><br>
+    <div id="userNameField"></div>
 </body>
 </html>	

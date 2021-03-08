@@ -1,5 +1,9 @@
 [
   {
+    "username": "New",
+    "bestScore": 100
+  },
+  {
     "username": "Andrea666",
     "bestScore": 100000
   },

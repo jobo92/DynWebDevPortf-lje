@@ -7,7 +7,9 @@
 
 $(document).ready(function(){
 
-	/*$('input:submit').on('click',function(evt){
+	    let arrayHighScore = [];
+    
+    /*$('input:submit').on('click',function(evt){
 		evt.preventDefault();
 		console.log( 'submitting form with Ajax...' );
 		*/
@@ -16,10 +18,13 @@ $(document).ready(function(){
 		  url: "http://localhost:9999/",
 		  dataType: "json",
 		  data: JSON.stringify({
-								//todo: $('#the_text').val()
+				//todo: $('#the_text').val()
 								})
 		}).done(function ( data ) {
 			console.log( data );
+           
+            arrayHighScore = data;
+            inputUsername();
 			
 			let elements = $();
 			for(let i=0; i<data.length;i++) {
@@ -30,8 +35,17 @@ $(document).ready(function(){
 			//$('#the_text').val('');
 		});
     
-        let username = prompt("Enter your username");
-        $("#userNameField").text("Your username is: " + username);
+        function inputUsername() {
+            let username = prompt("Enter your username");
+            $("#userNameField").text("Your username is: " + username);
+            $("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );
+            for (i = 0; i < arrayHighScore.length; i++) {
+                if (arrayHighScore[i].username == username) {
+                    $("#hasHighScore").text("You have a highscore of: " + arrayHighScore[i].bestScore);
+                } 
+            }
+        }
+        
         
 		
 	//});

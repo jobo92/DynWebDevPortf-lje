@@ -13,6 +13,7 @@ $(document).ready(function() {
 	// initial state of the game
 	let state = {hp: 100, xp: 0, score: 0};
     let arrayHighScore = [];
+    let username = "";
 	
 	let gameIsRunning = true;
     // henter highscore liste og viser den på siden
@@ -44,7 +45,7 @@ $(document).ready(function() {
     
     //Funktion der "promter" efter dit brugernavn og checker om du har en highscore  
     function inputUsername() {
-        let username = prompt("Please enter your username");
+        username = prompt("Please enter your username");
         if (username != null) {
             $('#userNameField').html("Welcome, your username is: " + username);
         } 
@@ -72,6 +73,24 @@ $(document).ready(function() {
             console.log( data);
         });
     }); //End of $('input:submit')
+    
+    
+    
+    //Funktion til at teste "quit"
+    function test(){
+        let preExistingScore = false;
+        for (i = 0; i < arrayHighScore.length; i++) {
+            if (arrayHighScore[i].username == username) {
+                arrayHighScore[i].bestScore = state.score;
+                preExistingScore = true;
+            } 
+        }
+        if (!preExistingScore) {
+            arrayHighScore.push({"username":username,"bestScore":state.score});
+        }
+        console.log(arrayHighScore);
+    }
+    
     
     
     
@@ -132,7 +151,7 @@ const status = $('#status')[0];
 		
 		switch( $('#userInput')[0].value.toUpperCase() ){
 			case 'QUIT':{
-				quit();
+				test();
 			} break;
 			case 'SEARCH':{
 				let dice = Math.floor(Math.random()*6)+1;

@@ -14,9 +14,35 @@ $(document).ready(function() {
 	let state = {hp: 100, xp: 0, score: 0};
 	
 	let gameIsRunning = true;
-	
+    // henter highscore liste og viser den på siden
+	$.ajax({
+		  type: "POST",
+		  url: "http://localhost:9999/",
+		  dataType: "json",
+		  data: JSON.stringify({
+								//todo: $('#the_text').val()
+								})
+		}).done(function ( data ) {
+			console.log( data );
+			
+			let elements = $();
+			for(let i=0; i<data.length;i++) {
+				elements = elements.add('<li>'+data[i].username + ': '+ data[i].bestScore +'</li>');
+			}
+			$('#highscore').empty();
+			$('#highscore').append(elements);     
+			//$('#the_text').val('');
+		});
 	// the display that will show what happens
             // skal laves om
+    
+    //promt der spørg efter brugernavn
+   let username = prompt("Please enter your username");
+if (username != null) {
+  $('#username').html(" Welcome, your username is: "+username);
+} 
+    
+    
 const status = $('#status')[0];
             // skal laves om
     $('#status').html('Your status is now: ' + JSON.stringify(state));
@@ -31,7 +57,26 @@ const status = $('#status')[0];
 		$('#status').html( 'You logged out!<br/>');
         $('#status').append('HighScore:');
 		//$('#status').html( 'HighScore: ...' + state.score); // to do
-        $.getJSON( "highscores.json ", function( data ) {
+      
+        //prøvede at få den til at gemme highsocre, men ikke færdig mangler også arbejde i server
+      /*  $.ajax({
+		  type: "POST",
+		  url: "http://localhost:9999/",
+		  dataType: "json",
+		  data: JSON.stringify({username: username, bestScore: state.score})
+            
+		}).done(function ( data ) {
+			console.log( data );
+			
+			let elements = $();
+			for(let i=0; i<data.length;i++) {
+				elements = elements.add('<li>'+data[i].username + ': '+ data[i].bestScore +'</li>');
+			}
+			$('#highscore').empty();
+			$('#highscore').append(elements);
+		});*/
+        
+         $.getJSON( "highscores.json ", function( data ) {
         console.log( 'the result:' , data);
       let items = [];
       //$.each( data, function( key, val ) {items.push( "<li id='" + key + "'>" + val + "</li>" ); });
@@ -39,16 +84,16 @@ const status = $('#status')[0];
              console.log( data[i].username + " test " +data[i].bestScore  );
              
             $('#status').append( "<li id='" + data[i].username + "'>" + data[i].username + " " + data[i].bestScore + "</li>" ); };
-        
+         });
       /*      
       $( "<ul/>", {
         "class": "my-new-list",
         html: items.join( "" )
       }).appendTo( "body" );*/
-    });
+    
 		gameIsRunning = false;
 		enterBtn.disabled = true;
-	}
+	};
 	
     $('#enterBtn').click(function(){
 		$('#status').html( 'Your status is now: ' + JSON.stringify(state));
@@ -104,6 +149,9 @@ const status = $('#status')[0];
 </head>
 <body>
 	<h1>Simple Game</h1>
+    <div id="username"></div>
+    <h1>Highscore:</h1>
+    <div id="highscore"></div>
 	<p>
 
 		<p><h2>Situation</h2>

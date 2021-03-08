@@ -16,6 +16,7 @@ $(document).ready(function() {
     let username = "";
 	
 	let gameIsRunning = true;
+    inputUsername();
     // henter highscore liste og viser den på siden
 	$.ajax({
 		  type: "POST",
@@ -28,7 +29,7 @@ $(document).ready(function() {
 			console.log( data );
         
             arrayHighScore = data;
-            inputUsername();
+            
 			
 			let elements = $();
 			for(let i=0; i<data.length;i++) {
@@ -64,14 +65,22 @@ $(document).ready(function() {
         evt.preventDefault();
         
         console.log( 'submitting form with Ajax...' );
-        $.ajax({
+         $.ajax({
+            type: "POST",
+            url: "http://localhost:9999/",
+            dataType: "json",
+            data: JSON.stringify({username: username, bestScore: state.score})
+        }).done(function ( data ) {
+            console.log( data);
+        })
+       /* $.ajax({
             type: "POST",
             url: "http://localhost:9999/",
             dataType: "json",
             data: JSON.stringify({arrayHighScore})
         }).done(function ( data ) {
             console.log( data);
-        });
+        });*/
     }); //End of $('input:submit')
     
     
@@ -104,6 +113,7 @@ const status = $('#status')[0];
 	const userInput = $('#userInput');		
 	
 	function quit(){
+        console.log("test save data " + username + ": " + state.score);
         // skal laves om
 		$('#status').html( 'You logged out!<br/>');
         $('#status').append('HighScore:');
@@ -126,14 +136,22 @@ const status = $('#status')[0];
 			$('#highscore').empty();
 			$('#highscore').append(elements);
 		});*/
+        console.log("test save data " + username + ": " + state.score);
+        /*
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:9999/",
+            dataType: "json",
+            data: JSON.stringify({username: username, bestScore: state.score})
+        }).done(function ( data ) {
+            console.log( data);
+        });*/
         
          $.getJSON( "highscores.json ", function( data ) {
         console.log( 'the result:' , data);
       let items = [];
       //$.each( data, function( key, val ) {items.push( "<li id='" + key + "'>" + val + "</li>" ); });
         for (i in data) {
-             console.log( data[i].username + " test " +data[i].bestScore  );
-             
             $('#status').append( "<li id='" + data[i].username + "'>" + data[i].username + " " + data[i].bestScore + "</li>" ); };
          });
       /*      
@@ -151,6 +169,7 @@ const status = $('#status')[0];
 		
 		switch( $('#userInput')[0].value.toUpperCase() ){
 			case 'QUIT':{
+                //console.log("test save data " + username + ": " + state.score);
 				test();
 			} break;
 			case 'SEARCH':{

@@ -64,11 +64,26 @@ route.for("POST","/", function(request,response){
     request.on('end', function(){ 
 		let receivedObj = JSON.parse(store);
 		console.log('received: '+ JSON.stringify( store ) );	// debug
-		
+		console.log("test revived data " +store+ " " + receivedObj.bestScore );
 		// add new todo item to the list...
-		/*myData.push( {timeStamp: new Date().toString() ,
-					  item: receivedObj.todo} );
-*/
+        for (i =0; i< myData.length;i++)
+            {
+                if ( myData[i].username == receivedObj.username)
+                    {
+                        if (receivedObj.bestScore > myData[i].bestScore)
+                            {
+                                myData[i].bestScore = receivedObj.bestScore;
+                                console.log("highscore update with higher score");
+                            }
+                        else
+                            {
+                                console.log("score to low");
+                            }
+                    }
+            }
+        
+		
+
 		// then save the list on the file...
 		fs.writeFile('highscore.txt', JSON.stringify(myData) ,  function(err) {
 			if (err) {

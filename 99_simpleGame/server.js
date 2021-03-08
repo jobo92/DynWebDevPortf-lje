@@ -70,7 +70,7 @@ route.for("POST","/", function(request,response){
 					  item: receivedObj.todo} );
 */
 		// then save the list on the file...
-		fs.writeFile('output.txt', JSON.stringify(myData) ,  function(err) {
+		fs.writeFile('highscore.txt', JSON.stringify(myData) ,  function(err) {
 			if (err) {
 				return console.error(err);
 			}

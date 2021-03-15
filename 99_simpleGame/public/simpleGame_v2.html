@@ -29,7 +29,8 @@ $(document).ready(function() {
 			console.log( data );
         
             arrayHighScore = data;
-            
+        // sorting highscore in decending order
+        data.sort((a, b) => parseFloat(b.bestScore) - parseFloat(a.bestScore));
 			
 			let elements = $();
 			for(let i=0; i<data.length;i++) {

@@ -66,8 +66,10 @@ route.for("POST","/", function(request,response){
 		console.log('received: '+ JSON.stringify( store ) );	// debug
 		console.log("test revived data " +store+ " " + receivedObj.bestScore );
 		// add new todo item to the list...
+        
+            console.log ("array length " + myData.length);
         for (i =0; i< myData.length;i++)
-            {
+            {console.log ("array length2 " + myData.length);// cckes if the user allready has a highsocre and if the new score is bigger
                 if ( myData[i].username == receivedObj.username)
                     {
                         if (receivedObj.bestScore > myData[i].bestScore)
@@ -80,6 +82,16 @@ route.for("POST","/", function(request,response){
                                 console.log("score to low");
                             }
                     }
+                else if (typeof receivedObj.username !== 'undefined') // checking if has data and addig new user to highscore
+                {
+                    console.log (receivedObj +(' ')+ receivedObj.username);
+                    console.log("Adding new user to highscore: " + myData[i].username +" Score: " + myData[i].bestScore);
+                    
+                    myData.push( {username: receivedObj.username ,
+					  bestScore: receivedObj.bestScore} );
+                    break;// so it does not loop for ever
+                    
+                }
             }
         
 		

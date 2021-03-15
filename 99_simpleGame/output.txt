@@ -1,1 +1,1 @@
-[{"username":"mathias","bestScore":0},{"username":"New","bestScore":100},{"username":"Andrea666","bestScore":100000},{"username":"iSuck001","bestScore":3}]
+[{"username":"mathias","bestScore":0},{"username":"Andrea666","bestScore":100000},{"username":"iSuck001","bestScore":3}]

@@ -47,15 +47,21 @@ $(document).ready(function() {
      }
     
     function updateHighscore() {
-         
+         let newUser = true;
          let elements = $();
 			for(let i=0; i<arrayHighScore.length;i++) {
                 if (username == arrayHighScore[i].username)
                     {
+                        newUser=false;
                     elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
                     }
-				elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
+                else{elements = elements.add('<li>'+arrayHighScore[i].username + ': '+ arrayHighScore[i].bestScore +'</li>');}
+				
 			}
+                if (newUser== true)
+                    {
+                        elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
+                    }
 			$('#highscore').empty();
 			$('#highscore').append(elements);   
      }
@@ -189,6 +195,7 @@ const status = $('#status')[0];
 			case 'QUIT':{
 				quit();
 			} break;
+                case 'TEST':{state.score +=1;}
 			case 'SEARCH':{
 				let dice = Math.floor(Math.random()*6)+1;
 				if (dice<=3){

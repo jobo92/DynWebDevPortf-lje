@@ -95,12 +95,13 @@ route.for("POST","/", function(request,response){
                     
                 }
             }
-       /* if (usernameNotFound == true)
+        if (usernameNotFound == true)
             {
                 //myData[].username = receivedObj.username;
                 //myData[i].bestScore = receivedObj.bestScore;
                 myData.push({username: receivedObj.username, bestScore: receivedObj.bestScore});
-            }*/
+                usernameNotFound =false;
+            }
 		
 
 		// then save the list on the file...

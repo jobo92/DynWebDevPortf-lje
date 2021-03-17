@@ -87,8 +87,6 @@ route.for("POST","/", function(request,response){
                     console.log (receivedObj +(' ')+ receivedObj.username);
                     console.log("Adding new user to highscore: " + myData[i].username +" Score: " + myData[i].bestScore);
                     
-                    myData.push( {username: receivedObj.username ,
-					  bestScore: receivedObj.bestScore} );
                     break;// so it does not loop for ever
                     
                 }

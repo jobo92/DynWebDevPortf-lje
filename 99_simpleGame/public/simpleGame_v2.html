@@ -89,17 +89,15 @@ $(document).ready(function() {
     
     //Funktion til at teste "quit"
     function quit(){
-        let preExistingScore = false;
-        for (i = 0; i < arrayHighScore.length; i++) {
-            if (arrayHighScore[i].username == username) {
-                arrayHighScore[i].bestScore = state.score;
-                preExistingScore = true;
-            } 
-        }
-        if (!preExistingScore) {
-            arrayHighScore.push({"username":username,"bestScore":state.score});
-        }
-        console.log(arrayHighScore);
+        console.log(state.score);
+         $.ajax({
+            type: "POST",
+            url: "http://localhost:9999/",
+            dataType: "json",
+            data: JSON.stringify({username: username, bestScore: state.score})
+        }).done(function ( data ) {
+            console.log( data);
+        })
     }
     
     

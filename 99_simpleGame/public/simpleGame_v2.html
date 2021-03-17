@@ -35,7 +35,7 @@ $(document).ready(function() {
         inputUsername();
 		});
 	// the display that will show what happens
-            // skal laves om
+            // viserstart highscore
      function showFirstHighscore() {
          
          let elements = $();
@@ -52,7 +52,7 @@ $(document).ready(function() {
 			for(let i=0; i<arrayHighScore.length;i++) {
                 if (username == arrayHighScore[i].username)
                     {
-                    
+                    elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
                     }
 				elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
 			}

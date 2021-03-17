@@ -14,7 +14,6 @@ $(document).ready(function() {
 	let state = {hp: 100, xp: 0, score: 0};
     let arrayHighScore = [];
     let username = "";
-	
 	let gameIsRunning = true;
    
     // henter highscore liste og viser den på siden
@@ -23,11 +22,10 @@ $(document).ready(function() {
 		  url: "http://localhost:9999/",
 		  dataType: "json",
 		  data: JSON.stringify({
-								//todo: $('#the_text').val()
 								})
 		}).done(function ( data ) {
 			console.log( data );
-        
+			//Her sætter vi arrayHighscore til at være lige med dataen. Vi kan derfor bruge arrayHighscore senere i programmet   
             arrayHighScore = data;
         // sorting highscore in decending order
         data.sort((a, b) => parseFloat(b.bestScore) - parseFloat(a.bestScore));
@@ -48,23 +46,20 @@ $(document).ready(function() {
     
     //Funktion der "promter" efter dit brugernavn og checker om du har en highscore  
     function inputUsername() {
-        console.log('test input');
         username = prompt("Please enter your username");
         if (username != null) {
             $('#userNameField').html("Welcome, your username is: " + username);
         } 
-       
+       //Har en state af username, hvis username er i arrayHighscore, så laver den en div med din highscore 
+	   //Hvis vi ikke har username, så laver den en anden div med at du ikke har din highscore
        let stateOfUsername =false;
-      
         for (i = 0; i < arrayHighScore.length; i++) 
         { 
             if (arrayHighScore[i].username == username) {
                stateOfUsername =true;
             }
-            
 			if (stateOfUsername == true)
         	{
-			
           	$("#userNameField").after("<div id='hasHighScore'>You have a highscore of: " + arrayHighScore[i].bestScore+"</div>"); 
 		  	break;
         	}
@@ -72,7 +67,6 @@ $(document).ready(function() {
 		if(stateOfUsername==false){
 			$("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );  
 		}
-
     } //End of inputUsername()
     
     
@@ -90,20 +84,11 @@ $(document).ready(function() {
         }).done(function ( data ) {
             console.log( data);
         })
-       /* $.ajax({
-            type: "POST",
-            url: "http://localhost:9999/",
-            dataType: "json",
-            data: JSON.stringify({arrayHighScore})
-        }).done(function ( data ) {
-            console.log( data);
-        });*/
+      
     }); //End of $('input:submit')
     
-    
-    
     //Funktion til at teste "quit"
-    function test(){
+    function quit(){
         let preExistingScore = false;
         for (i = 0; i < arrayHighScore.length; i++) {
             if (arrayHighScore[i].username == username) {
@@ -129,7 +114,7 @@ const status = $('#status')[0];
 	const enterBtn = $('#enterBtn');	
 	const userInput = $('#userInput');		
 	
-	function quit(){
+	function test(){
         console.log("test save data " + username + ": " + state.score);
         // skal laves om
 		$('#status').html( 'You logged out!<br/>');
@@ -186,8 +171,7 @@ const status = $('#status')[0];
 		
 		switch( $('#userInput')[0].value.toUpperCase() ){
 			case 'QUIT':{
-                //console.log("test save data " + username + ": " + state.score);
-				test();
+				quit();
 			} break;
 			case 'SEARCH':{
 				let dice = Math.floor(Math.random()*6)+1;

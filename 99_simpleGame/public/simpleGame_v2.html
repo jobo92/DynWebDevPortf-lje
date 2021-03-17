@@ -53,26 +53,31 @@ $(document).ready(function() {
         if (username != null) {
             $('#userNameField').html("Welcome, your username is: " + username);
         } 
-        console.log('arry length :'+arrayHighScore.length);
+       
        let stateOfUsername =false;
-        let scorePlaceNumber = 0;
+      
         for (i = 0; i < arrayHighScore.length; i++) 
         { 
             if (arrayHighScore[i].username == username) {
                stateOfUsername =true;
-                scorePlaceNumber = i;
+            
             }
             
-                     
-        }
-        if (stateOfUsername == true)
+			if (stateOfUsername == true)
         {
-          $("#hasHighScore").text("You have a highscore of: " + arrayHighScore[scorePlaceNumber].bestScore); 
+			console.log("kakao");
+          $("#userNameField").after("<div id='hasHighScore'>You have a highscore of: " + arrayHighScore[i].bestScore+"</div>"); 
+		  break;
         }
-        else
-            {
-               $("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );  
-            }
+        }
+		if(stateOfUsername==false){
+			$("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );  
+		}
+       
+       
+            
+              
+            
     } //End of inputUsername()
     
     

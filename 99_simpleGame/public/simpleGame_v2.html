@@ -48,8 +48,26 @@ $(document).ready(function() {
     
     function updateHighscore() {
          let newUser = true;
+        let addNewUser = true;
          let elements = $();
+        
+        
+        for(let i=0; i<arrayHighScore.length;i++) {
+                if (username == arrayHighScore[i].username)
+                    {
+                        addNewUser=false;
+                   
+                    }
+                }
+               
+                if (addNewUser== true)
+                    {
+                        arrayHighScore.push({username: username, bestScore: state.score});
+                      arrayHighScore.sort((a, b) => parseFloat(b.bestScore) - parseFloat(a.bestScore));
+                    }
+        
 			for(let i=0; i<arrayHighScore.length;i++) {
+                arrayHighScore.sort((a, b) => parseFloat(b.bestScore) - parseFloat(a.bestScore));
                 if (username == arrayHighScore[i].username)
                     {
                         newUser=false;
@@ -112,7 +130,7 @@ $(document).ready(function() {
     
     //Funktion til at teste "quit"
     function quit(){
-        //updateHighscore();
+        updateHighscore();
         console.log('test' +state.score);
          $.ajax({
             type: "POST",
@@ -192,10 +210,17 @@ const status = $('#status')[0];
 		$('#status').html( 'Your status is now: ' + JSON.stringify(state));
 		
 		switch( $('#userInput')[0].value.toUpperCase() ){
-			case 'QUIT':{
+			
+           /*  case 'TEST':{
+                state.score +=1;
+                break;
+            }*/
+                
+            case 'QUIT':{
 				quit();
-			} break;
-                case 'TEST':{state.score +=1;}
+                break;
+			} 
+                
 			case 'SEARCH':{
 				let dice = Math.floor(Math.random()*6)+1;
 				if (dice<=3){
@@ -219,6 +244,7 @@ const status = $('#status')[0];
 					$('#status').append('<br/>you found nothing.');
 				}
 			} break;
+                
 			case 'KILL':{
 				let dice = Math.floor(Math.random()*6)+1;
 				if (dice<=2){

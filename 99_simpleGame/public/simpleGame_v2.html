@@ -16,7 +16,7 @@ $(document).ready(function() {
     let username = "";
 	
 	let gameIsRunning = true;
-    inputUsername();
+   
     // henter highscore liste og viser den på siden
 	$.ajax({
 		  type: "POST",
@@ -39,24 +39,40 @@ $(document).ready(function() {
 			$('#highscore').empty();
 			$('#highscore').append(elements);     
 			//$('#the_text').val('');
+        inputUsername();
 		});
 	// the display that will show what happens
             // skal laves om
-    
+     
     
     
     //Funktion der "promter" efter dit brugernavn og checker om du har en highscore  
     function inputUsername() {
+        console.log('test input');
         username = prompt("Please enter your username");
         if (username != null) {
             $('#userNameField').html("Welcome, your username is: " + username);
         } 
-        $("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );
-        for (i = 0; i < arrayHighScore.length; i++) {
+        console.log('arry length :'+arrayHighScore.length);
+       let stateOfUsername =false;
+        let scorePlaceNumber = 0;
+        for (i = 0; i < arrayHighScore.length; i++) 
+        { 
             if (arrayHighScore[i].username == username) {
-                $("#hasHighScore").text("You have a highscore of: " + arrayHighScore[i].bestScore);
-            } 
+               stateOfUsername =true;
+                scorePlaceNumber = i;
+            }
+            
+                     
         }
+        if (stateOfUsername == true)
+        {
+          $("#hasHighScore").text("You have a highscore of: " + arrayHighScore[scorePlaceNumber].bestScore); 
+        }
+        else
+            {
+               $("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );  
+            }
     } //End of inputUsername()
     
     

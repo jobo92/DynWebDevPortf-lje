@@ -8,7 +8,7 @@ const fs = require('fs');
 let myData = null;
 
 fs.readFile('highscore.txt', function (err, data) {
-	myData = []; // if file does not exist 
+	myData = []; // iff file does not exist 
 		//                  -> first run 
 		//                     create an empty array
 	if (err) {		
@@ -48,7 +48,7 @@ route.for("GET","/jquery-3.3.1.min.js", function(request,response){
 });
 
 route.for("GET","/", function(request,response){
-	serverStatic(response,"public/simpleGame_v2.html");
+	serverStatic(response,"public/Task1.html");
     //serverStatic(response,"public/index.html");
 });
 // serving static files - end

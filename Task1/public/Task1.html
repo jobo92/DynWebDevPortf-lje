@@ -113,7 +113,7 @@ $(document).ready(function() {
     
     
     //Klik funktion der sender "arrayHighScore" arrayet til node der gemmer det som en fil
-    $('input:submit').on('click',function(evt){
+   /* $('input:submit').on('click',function(evt){
         evt.preventDefault();
         
         console.log( 'submitting form with Ajax...' );
@@ -126,7 +126,7 @@ $(document).ready(function() {
             console.log( data);
         })
       
-    }); //End of $('input:submit')
+    }); //End of $('input:submit')*/
     
     //Funktion til at teste "quit"
     function quit(){
@@ -270,10 +270,10 @@ const status = $('#status')[0];
 <body>
 	<h1>Simple Game</h1>
     <div id="userNameField"></div>
-    <form method="POST">
+   <!-- <form method="POST">
 	Send highscore array to node: 
 	<input type="submit" value="Send"/>
-	</form>
+	</form>-->
     <h1>Highscore:</h1>
     <div id="highscore"></div>
 	<p>

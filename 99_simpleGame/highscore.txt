@@ -1,1 +1,0 @@
-[{"username":"mathias","bestScore":1},{"username":"Andrea666","bestScore":3},{"username":"iSuck001","bestScore":5}]

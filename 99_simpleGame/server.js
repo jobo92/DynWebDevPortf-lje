@@ -68,10 +68,13 @@ route.for("POST","/", function(request,response){
 		// add new todo item to the list...
         
             console.log ("array length " + myData.length);
+        let usernameNotFound = false;
         for (i =0; i< myData.length;i++)
-            {console.log ("array length2 " + myData.length);// cckes if the user allready has a highsocre and if the new score is bigger
+            {
+                console.log ("array length2 " + myData.length);// cckes if the user allready has a highsocre and if the new score is bigger
                 if ( myData[i].username == receivedObj.username)
                     {
+                         usernameNotFound = false;
                         if (receivedObj.bestScore > myData[i].bestScore)
                             {
                                 myData[i].bestScore = receivedObj.bestScore;
@@ -84,14 +87,20 @@ route.for("POST","/", function(request,response){
                     }
                 else if (typeof receivedObj.username !== 'undefined') // checking if has data and addig new user to highscore
                 {
+                    
                     console.log (receivedObj +(' ')+ receivedObj.username);
                     console.log("Adding new user to highscore: " + myData[i].username +" Score: " + myData[i].bestScore);
-                    
+                    usernameNotFound = true;
                     break;// so it does not loop for ever
                     
                 }
             }
-        
+       /* if (usernameNotFound == true)
+            {
+                //myData[].username = receivedObj.username;
+                //myData[i].bestScore = receivedObj.bestScore;
+                myData.push({username: receivedObj.username, bestScore: receivedObj.bestScore});
+            }*/
 		
 
 		// then save the list on the file...

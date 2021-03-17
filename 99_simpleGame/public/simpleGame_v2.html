@@ -30,18 +30,35 @@ $(document).ready(function() {
         // sorting highscore in decending order
         data.sort((a, b) => parseFloat(b.bestScore) - parseFloat(a.bestScore));
 			
-			let elements = $();
-			for(let i=0; i<data.length;i++) {
-				elements = elements.add('<li>'+data[i].username + ': '+ data[i].bestScore +'</li>');
-			}
-			$('#highscore').empty();
-			$('#highscore').append(elements);     
+			  showFirstHighscore();
 			//$('#the_text').val('');
         inputUsername();
 		});
 	// the display that will show what happens
             // skal laves om
-     
+     function showFirstHighscore() {
+         
+         let elements = $();
+			for(let i=0; i<arrayHighScore.length;i++) {
+				elements = elements.add('<li>'+arrayHighScore[i].username + ': '+ arrayHighScore[i].bestScore +'</li>');
+			}
+			$('#highscore').empty();
+			$('#highscore').append(elements);   
+     }
+    
+    function updateHighscore() {
+         
+         let elements = $();
+			for(let i=0; i<arrayHighScore.length;i++) {
+                if (username == arrayHighScore[i].username)
+                    {
+                    
+                    }
+				elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
+			}
+			$('#highscore').empty();
+			$('#highscore').append(elements);   
+     }
     
     
     //Funktion der "promter" efter dit brugernavn og checker om du har en highscore  
@@ -89,7 +106,8 @@ $(document).ready(function() {
     
     //Funktion til at teste "quit"
     function quit(){
-        console.log(state.score);
+        updateHighscore();
+        console.log('test' +state.score);
          $.ajax({
             type: "POST",
             url: "http://localhost:9999/",

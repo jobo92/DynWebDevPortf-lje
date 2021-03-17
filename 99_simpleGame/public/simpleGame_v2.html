@@ -60,24 +60,19 @@ $(document).ready(function() {
         { 
             if (arrayHighScore[i].username == username) {
                stateOfUsername =true;
-            
             }
             
 			if (stateOfUsername == true)
-        {
-			console.log("kakao");
-          $("#userNameField").after("<div id='hasHighScore'>You have a highscore of: " + arrayHighScore[i].bestScore+"</div>"); 
-		  break;
-        }
+        	{
+			
+          	$("#userNameField").after("<div id='hasHighScore'>You have a highscore of: " + arrayHighScore[i].bestScore+"</div>"); 
+		  	break;
+        	}
         }
 		if(stateOfUsername==false){
 			$("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );  
 		}
-       
-       
-            
-              
-            
+
     } //End of inputUsername()
     
     

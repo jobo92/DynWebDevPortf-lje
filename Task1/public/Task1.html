@@ -137,7 +137,7 @@ $(document).ready(function() {
       
     }); //End of $('input:submit')*/
     
-    //Funktion til at teste "quit"
+    
     function quit(){
         updateHighscore();
         console.log('test' +state.score);
@@ -152,8 +152,6 @@ $(document).ready(function() {
     }
     
     
-    
-    
 const status = $('#status')[0];
             // skal laves om
     $('#status').html('Your status is now: ' + JSON.stringify(state));
@@ -163,58 +161,6 @@ const status = $('#status')[0];
 	const enterBtn = $('#enterBtn');	
 	const userInput = $('#userInput');
     let WhereIsTheUser = "Corridor";		
-	
-	function test(){
-        console.log("test save data " + username + ": " + state.score);
-        // skal laves om
-		$('#status').html( 'You logged out!<br/>');
-        $('#status').append('HighScore:');
-		//$('#status').html( 'HighScore: ...' + state.score); // to do
-      
-        //prøvede at få den til at gemme highsocre, men ikke færdig mangler også arbejde i server
-      /*  $.ajax({
-		  type: "POST",
-		  url: "http://localhost:9999/",
-		  dataType: "json",
-		  data: JSON.stringify({username: username, bestScore: state.score})
-            
-		}).done(function ( data ) {
-			console.log( data );
-			
-			let elements = $();
-			for(let i=0; i<data.length;i++) {
-				elements = elements.add('<li>'+data[i].username + ': '+ data[i].bestScore +'</li>');
-			}
-			$('#highscore').empty();
-			$('#highscore').append(elements);
-		});*/
-        console.log("test save data " + username + ": " + state.score);
-        /*
-        $.ajax({
-            type: "POST",
-            url: "http://localhost:9999/",
-            dataType: "json",
-            data: JSON.stringify({username: username, bestScore: state.score})
-        }).done(function ( data ) {
-            console.log( data);
-        });*/
-        
-         $.getJSON( "highscores.json ", function( data ) {
-        console.log( 'the result:' , data);
-      let items = [];
-      //$.each( data, function( key, val ) {items.push( "<li id='" + key + "'>" + val + "</li>" ); });
-        for (i in data) {
-            $('#status').append( "<li id='" + data[i].username + "'>" + data[i].username + " " + data[i].bestScore + "</li>" ); };
-         });
-      /*      
-      $( "<ul/>", {
-        "class": "my-new-list",
-        html: items.join( "" )
-      }).appendTo( "body" );*/
-    
-		gameIsRunning = false;
-		enterBtn.disabled = true;
-	};
 	
     function encounterMonster() {
         let dice = Math.floor(Math.random()*5)+1;
@@ -234,17 +180,11 @@ const status = $('#status')[0];
 		$('#status').html( 'Your status is now: ' + JSON.stringify(state));
         if (state.hp <=0)
             {
-                $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( )');
+                $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( ');
                 quit();
             }else{
 		switch( $('#userInput')[0].value.toUpperCase() ){
 
-        
-			
-           /*  case 'TEST':{
-                state.score +=1;
-                break;
-            }*/
                 
             case 'QUIT':{
 				quit();
@@ -252,8 +192,6 @@ const status = $('#status')[0];
                 
 			} 
             
-                
-                
 			case 'SEARCH':{
 				let dice = Math.floor(Math.random()*chanceToFind)+1;
 				if (dice<4) {

@@ -220,7 +220,11 @@ const status = $('#status')[0];
 		$('#status').html( 'Your status is now: ' + JSON.stringify(state));
 		
 		switch( $('#userInput')[0].value.toUpperCase() ){
-
+                    if (state.hp <=0)
+            {
+                $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( )');
+                quit();
+            }
         
 			
            /*  case 'TEST':{
@@ -233,11 +237,7 @@ const status = $('#status')[0];
                 break;
 			} 
             
-                 if (state.hp <=0)
-            {
-                $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( )');
-                quit();
-            }
+             
                 
 			case 'SEARCH':{
 				let dice = Math.floor(Math.random()*chanceToFind)+1;

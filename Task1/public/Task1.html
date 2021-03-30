@@ -72,7 +72,15 @@ $(document).ready(function() {
                 if (username == arrayHighScore[i].username)
                     {
                         newUser=false;
-                    elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
+                        if ( state.score > arrayHighScore[i].bestScore)
+                        {
+                            elements = elements.add('<li>'+username+ ': '+ state.score +'</li>');
+                        }
+                        else
+                        {
+                            elements = elements.add('<li>'+username+ ': '+ arrayHighScore[i].bestScore +'</li>');    
+                        }
+                    
                     }
                 else{elements = elements.add('<li>'+arrayHighScore[i].username + ': '+ arrayHighScore[i].bestScore +'</li>');}
 				
@@ -224,6 +232,12 @@ const status = $('#status')[0];
 				quit();
                 break;
 			} 
+            
+                 if (state.hp <=0)
+            {
+                $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( )');
+                quit();
+            }
                 
 			case 'SEARCH':{
 				let dice = Math.floor(Math.random()*chanceToFind)+1;

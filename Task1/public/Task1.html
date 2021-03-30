@@ -152,7 +152,8 @@ const status = $('#status')[0];
                     //`your hp is ${state.hp}, and ...`;
 	// skal laves om
 	const enterBtn = $('#enterBtn');	
-	const userInput = $('#userInput');		
+	const userInput = $('#userInput');
+    let WhereIsTheUser = "Corridor";		
 	
 	function test(){
         console.log("test save data " + username + ": " + state.score);
@@ -210,6 +211,8 @@ const status = $('#status')[0];
 		$('#status').html( 'Your status is now: ' + JSON.stringify(state));
 		
 		switch( $('#userInput')[0].value.toUpperCase() ){
+
+        
 			
            /*  case 'TEST':{
                 state.score +=1;
@@ -236,7 +239,7 @@ const status = $('#status')[0];
 						state.xp += Math.floor(Math.random()*6)+1;
 					}
 					if (dice==3){
-						$('#status').append( '<br/>... poisonous mushroom!');
+						$('#status').append( '<br/>... poisonous mushroom!');   
 						state.hp -= Math.floor(Math.random()*6)+1;
 						state.xp += 1;
 					}
@@ -244,18 +247,47 @@ const status = $('#status')[0];
 					$('#status').append('<br/>you found nothing.');
 				}
 			} break;
+            
                 
-			case 'KILL':{
-				let dice = Math.floor(Math.random()*6)+1;
-				if (dice<=2){
-					$('#status').append( '<br/>you killed a monster!');
-					state.hp -= Math.floor(Math.random()*6)+1;
-					state.xp += Math.floor(Math.random()*6)+1;
-					state.score += Math.floor(Math.random()*2);
-				} else {
-					$('#status').append( '<br/>you tried to kill a monster... no luck!');
-				}
+			case 'BASEMENT':{
+                    if(WhereIsTheUser!="Corridor"){ 
+                        $('#status').append( '<br/>...command not recognized...');
+                        break;
+                    }
+                    WhereIsTheUser="Basement"
+					$('#status').append( '<br/>you are now in the basement');
+                    $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
+				
 			} break;
+            case 'LIVINGROOM':{
+                    if(WhereIsTheUser!="Corridor"){ 
+                        $('#status').append( '<br/>...command not recognized...');
+                        break;
+                    }
+                    WhereIsTheUser="Livingroom"
+					$('#status').append( '<br/>you are now in the livingroom');
+                    $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
+				
+			} break;
+            case 'UPPERFLOOR':{
+                    if(WhereIsTheUser!="Corridor"){ 
+                        $('#status').append( '<br/>...command not recognized...');
+                        break;
+                    }
+                    WhereIsTheUser="Upperfloor"
+					$('#status').append( '<br/>you are at the upperfloor');
+                    $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
+			} break;
+            case 'CORRIDOR':{
+                    if(WhereIsTheUser=="Corridor"){ 
+                        $('#status').append( '<br/>...command not recognized...');
+                        break;
+                    }
+                    WhereIsTheUser="Corridor";
+					$('#status').append( '<br/>you are at the corridor');
+                    $('#options').replaceWith('<b id="options" ><br/>your options are Search/Basement/Livingroom/Upperfloor/Quit </b>');
+			} break;
+
 			default: {
 				$('#status').append( '<br/>...command not recognized...');
 			}
@@ -281,10 +313,10 @@ const status = $('#status')[0];
 		<p><h2>Situation</h2>
 		<div id="status">...</div>
 		</p>
-
+        <b id="options"> Your options are Search/Basement/Livingroom/Upperfloor/quit</b>
 		<hr/>	
 
-		<b>What do you want to do? (search/kill/quit)</b>
+		<!-- <b>What do you want to do? (search/kill/quit)</b> -->
 		<br/>
 		<input type="text" id="userInput"></input>
 		<button type="button" id="enterBtn">ENTER</button>

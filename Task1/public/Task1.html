@@ -15,6 +15,7 @@ $(document).ready(function() {
     let arrayHighScore = [];
     let username = "";
 	let gameIsRunning = true;
+    let chanceToFind = 15;
    
     // henter highscore liste og viser den på siden
 	$.ajax({
@@ -225,28 +226,43 @@ const status = $('#status')[0];
 			} 
                 
 			case 'SEARCH':{
-				let dice = Math.floor(Math.random()*6)+1;
-				if (dice<=3){
-					$('#status').append( '<br/>you found something...');
-					dice = Math.floor(Math.random()*6)+1;
-					if (dice==1){
-						$('#status').append( '<br/>... a rosted chicken!');
-						state.hp += Math.floor(Math.random()*6)+1;
-					}
-					if (dice==2){
-						$('#status').append( '<br/>... some coins!');
-						state.score += Math.floor(Math.random()*6)+1;
-						state.xp += Math.floor(Math.random()*6)+1;
-					}
-					if (dice==3){
-						$('#status').append( '<br/>... poisonous mushroom!');   
-						state.hp -= Math.floor(Math.random()*6)+1;
-						state.xp += 1;
-					}
-				} else {
-					$('#status').append('<br/>you found nothing.');
+				let dice = Math.floor(Math.random()*chanceToFind)+1;
+				if (dice<4) {
+					$('#status').append('<br/>You found a single gold coin ... looks very valuable');
+                    chanceToFind++;
+                    state.score += 1;
+                    state.hp -= 1;
+                    
+				} else if (dice<7) {
+                    $('#status').append('<br/>You found a piece of old parchement ... maybe it is worth something');
+                    chanceToFind++;
+                    state.score += 1;
+                    state.hp -= 1;
+                    
+                } else if (dice<10) {
+                    $('#status').append('<br/>You found an extra copy of the best manual in existence');
+                    chanceToFind++;
+                    state.score += 1;
+                    state.hp -= 1;
+                    
+                } else if (dice<13) {
+                    $('#status').append('<br/>You found something interesting ... it seems valuable but also very disturbing');
+                    chanceToFind++;
+                    state.score += Math.floor(Math.random()*6)+1;
+                    state.hp -= 1;
+                    
+                } else if (dice<15) {
+                    $('#status').append('<br/>You found a chicken ... yum');
+                    chanceToFind++;
+                    state.score += 1;
+                    state.hp -= 1;
+                    
+                } else {
+					$('#status').append('<br/>You found nothing ...');
 				}
-			} break;
+			} 
+                console.log(chanceToFind);
+                break;
             
                 
 			case 'BASEMENT':{

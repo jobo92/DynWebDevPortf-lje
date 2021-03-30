@@ -216,6 +216,20 @@ const status = $('#status')[0];
 		enterBtn.disabled = true;
 	};
 	
+    function encounterMonster() {
+        let dice = Math.floor(Math.random()*5)+1;
+        if (dice <= 1) {
+            let lostHp = Math.floor(Math.random()*6)+6;
+            state.hp -= lostHp;
+            state.xp += 10;
+            state.score += 5;
+            $('#status').append( '<br/>You spotted a monster in the room and decided to fight it');
+            $('#status').append( '<br/>You lost ' + lostHp + ' hp');
+            
+        }
+    }
+    
+    
     $('#enterBtn').click(function(){
 		$('#status').html( 'Your status is now: ' + JSON.stringify(state));
         if (state.hp <=0)
@@ -287,6 +301,7 @@ const status = $('#status')[0];
                         $('#status').append( '<br/>...command not recognized...');
                         break;
                     }
+                    encounterMonster();
                     WhereIsTheUser="Basement"
 					$('#status').append( '<br/>you are now in the basement');
                     $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
@@ -297,6 +312,7 @@ const status = $('#status')[0];
                         $('#status').append( '<br/>...command not recognized...');
                         break;
                     }
+                    encounterMonster();
                     WhereIsTheUser="Livingroom"
 					$('#status').append( '<br/>you are now in the livingroom');
                     $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
@@ -307,6 +323,7 @@ const status = $('#status')[0];
                         $('#status').append( '<br/>...command not recognized...');
                         break;
                     }
+                    encounterMonster();
                     WhereIsTheUser="Upperfloor"
 					$('#status').append( '<br/>you are at the upperfloor');
                     $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
@@ -316,6 +333,7 @@ const status = $('#status')[0];
                         $('#status').append( '<br/>...command not recognized...');
                         break;
                     }
+                    encounterMonster();
                     WhereIsTheUser="Corridor";
 					$('#status').append( '<br/>you are at the corridor');
                     $('#options').replaceWith('<b id="options" ><br/>your options are Search/Basement/Livingroom/Upperfloor/Quit </b>');

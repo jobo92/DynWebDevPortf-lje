@@ -1,1 +1,1 @@
-[{"username":"mathias","bestScore":2},{"username":"Andrea666","bestScore":3},{"username":"iSuck001","bestScore":5},{"username":"Tobias","bestScore":11},{"username":"Basement","bestScore":6},{"username":"daniel","bestScore":7},{"username":"test","bestScore":33}]
+[{"username":"mathias","bestScore":2},{"username":"Andrea666","bestScore":3},{"username":"iSuck001","bestScore":5},{"username":"Tobias","bestScore":11},{"username":"Basement","bestScore":6},{"username":"daniel","bestScore":7},{"username":"test","bestScore":33},{"username":"tobi","bestScore":10}]

@@ -15,6 +15,8 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages > li { padding: 0.5rem 1rem; }
       #messages > li:nth-child(odd) { background: #efefef; }
+      
+      #userItemsHeadline { width:20%; float: right; }
 </style>
 <script src="jquery-3.3.1.min.js"></script>
 
@@ -28,18 +30,19 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 	Send highscore array to node: 
 	<input type="submit" value="Send"/>
 	</form>-->
+    <div id="userItemsHeadline"><h3 > User items</h3>
+            <div id="itemList">
+            </div>
+        </div>
     <h1>Highscore:</h1>
     <div id="highscore"></div>
     
     <p>
         <h2>Items in the Room</h2>
-        <div id="itemList"></div>
+        <div id="itemsInRoom" > </div>
+        
     </p>
     
-    <p>
-        <h2>Items in the Room</h2>
-        <div id="itemList"></div>
-    </p>
 	
     <p>
 
@@ -194,6 +197,24 @@ socket.on('chat message', function(msg) {
     window.scrollTo(0, document.body.scrollHeight);
   });
             
+    /*socket.on('theItems', function(itemsString){
+      var items = JSON.parse(itemsString);
+      //console.log( items , items.map(it=>it.name).join('<br>') );
+      $('#itemList').empty();
+      $('#itemList').html("<h3>This is your list");
+      items.forEach((elem)=>{
+        $('#itemList').append($('<li id="YourItems"> ').text(elem.name));
+        //     while($("#itemList")!=0){
+        //     $('#itemList').on("click",function(){
+        //         $('#YourItems').hide();
+        //     //console.log(elem.name);
+        //     });
+
+        // };
+      });
+
+    });*/
+            
 /*socket.on('theItems', function(itemsString){
         let items = JSON.parse(itemsString);
         //console.log( items , items.map(it=>it.name).join('<br>') );
@@ -243,7 +264,18 @@ socket.on('chat message', function(msg) {
             // skal laves om
             const enterBtn = $('#enterBtn');	
             const userInput = $('#userInput');
-            let WhereIsTheUser = "Corridor";		
+            let WhereIsTheUser = "corridor";
+            console.log("setting rom items");
+                            socket.emit('requestRoomItems',WhereIsTheUser);
+                            socket.on('recivedRoomItems', function(itemsString)
+                                {
+                                let items = JSON.parse(itemsString);
+                                //console.log( items , items.map(it=>it.name).join('<br>') );
+                                $('#itemsInRoom').empty();
+                                items.forEach((elem)=>{
+                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                      })
+                                })
             
             function encounterMonster() {
                 let dice = Math.floor(Math.random()*5)+1;
@@ -266,7 +298,11 @@ socket.on('chat message', function(msg) {
                         $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( ');
                         quit();
                     }else{
-                switch( $('#userInput')[0].value.toUpperCase() ){
+                        let userInput2 = [];
+                        userInput2 = $('#userInput')[0].value.toUpperCase().split(" ");
+                        console.log(userInput2);
+                        //switch( $('#userInput')[0].value.toUpperCase() ){
+                        switch( userInput2[0]){
         
                         
                     case 'QUIT':{
@@ -315,66 +351,476 @@ socket.on('chat message', function(msg) {
                     } 
                         console.log(chanceToFind);
                         break;
-                    
                         
                     case 'BASEMENT':{
-                            if(WhereIsTheUser!="Corridor"){ 
+                            if(WhereIsTheUser!="corridor"){ 
                                 $('#status').append( '<br/>...command not recognized...');
                                 break;
                             }
+                        
+                            WhereIsTheUser="basement"
+                            socket.emit('requestRoomItems',WhereIsTheUser);
+                            socket.on('recivedRoomItems', function(itemsString)
+                                {
+                                let items = JSON.parse(itemsString);
+                                //console.log( items , items.map(it=>it.name).join('<br>') );
+                                $('#itemsInRoom').empty();
+                                items.forEach((elem)=>{
+                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                      })
+                                });
+                        
                             encounterMonster();
-                            WhereIsTheUser="Basement"
+                            
                             $('#status').append( '<br/>you are now in the basement');
-                            $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
+                            $('#options').replaceWith('<b id="options" ><br/>your options are Search/corridor/Quit </b>');
                         
-                    } break;
+                        } break;
+                                
                     case 'LIVINGROOM':{
-                            if(WhereIsTheUser!="Corridor"){ 
+                            if(WhereIsTheUser!="corridor"){ 
                                 $('#status').append( '<br/>...command not recognized...');
                                 break;
                             }
-                            encounterMonster();
-                            WhereIsTheUser="Livingroom"
-                            $('#status').append( '<br/>you are now in the livingroom');
-                            $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
                         
-                    } break;
+                            WhereIsTheUser="livingroom"
+                            socket.emit('requestRoomItems',WhereIsTheUser);
+                            socket.on('recivedRoomItems', function(itemsString)
+                                {
+                                let items = JSON.parse(itemsString);
+                                //console.log( items , items.map(it=>it.name).join('<br>') );
+                                $('#itemsInRoom').empty();
+                                items.forEach((elem)=>{
+                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                      })
+                                });    
+                        
+                            encounterMonster();
+                            
+                            $('#status').append( '<br/>you are now in the livingroom');
+                            $('#options').replaceWith('<b id="options" ><br/>your options are Search/corridor/Quit </b>');
+                        
+                        } break;
+                                
                     case 'UPPERFLOOR':{
-                            if(WhereIsTheUser!="Corridor"){ 
+                            if(WhereIsTheUser!="corridor"){ 
                                 $('#status').append( '<br/>...command not recognized...');
                                 break;
                             }
+                        
+                            WhereIsTheUser="upperfloor"
+                            socket.emit('requestRoomItems',WhereIsTheUser);
+                            socket.on('recivedRoomItems', function(itemsString)
+                                {
+                                let items = JSON.parse(itemsString);
+                                //console.log( items , items.map(it=>it.name).join('<br>') );
+                                $('#itemsInRoom').empty();
+                                items.forEach((elem)=>{
+                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                      })
+                                });
+                                
                             encounterMonster();
-                            WhereIsTheUser="Upperfloor"
+                            
                             $('#status').append( '<br/>you are at the upperfloor');
-                            $('#options').replaceWith('<b id="options" ><br/>your options are Search/Corridor/Quit </b>');
-                    } break;
+                            $('#options').replaceWith('<b id="options" ><br/>your options are Search/corridor/Quit </b>');
+                        } break;
+                                
                     case 'CORRIDOR':{
-                            if(WhereIsTheUser=="Corridor"){ 
+                            if(WhereIsTheUser=="corridor"){ 
                                 $('#status').append( '<br/>..You are in corriodor...');
                                 break;
                             }
+                            WhereIsTheUser="corridor";
+                            socket.emit('requestRoomItems',WhereIsTheUser);
+                            socket.on('recivedRoomItems', function(itemsString)
+                                {
+                                let items = JSON.parse(itemsString);
+                                //console.log( items , items.map(it=>it.name).join('<br>') );
+                                $('#itemsInRoom').empty();
+                                items.forEach((elem)=>{
+                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                      })
+                                })
                             encounterMonster();
-                            WhereIsTheUser="Corridor";
+                            
                             $('#status').append( '<br/>you are at the corridor');
                             $('#options').replaceWith('<b id="options" ><br/>your options are Search/Basement/Livingroom/Upperfloor/Quit </b>');
                     } break;
-                        
-                 case 'ITEMS':{
-                     
-                       if(WhereIsTheUser=="Corridor"){ 
-                           socket.emit('requestItems',"hello");
-                       socket.on('recivedItems', function(itemsString){
-                           
-                        let items = JSON.parse(itemsString);
-                        //console.log( items , items.map(it=>it.name).join('<br>') );
-                        $('#itemList').empty();
-                        items.forEach((elem)=>{
-                        $('#itemList').append($('<li>').text(elem.name));
-                          })
-                        });
-                       }
-                 }break;
+                                
+                case 'PICKUP':{
+                                if( userInput2[1] == 'PICTURE'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"picture", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                                else if( userInput2[1] == 'BROOM'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"broom", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                                
+                               else if( userInput2[1] == 'PILLOW'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"pillow", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                                else if( userInput2[1] == 'BOX'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"box", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                                else if( userInput2[1] == 'PLATE'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"plate", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                                else if( userInput2[1] == 'CHARGER'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"charger", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                                else if( userInput2[1] == 'IRON'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"iron", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                                else if( userInput2[1] == 'PAPER'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('addUserItem',"paper", WhereIsTheUser);
+                                       
+                                        socket.on('recivedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                            }break;
+                                
+                case 'REMOVE':{
+                            if( userInput2[1] == 'PICTURE'){
+                                        console.log(" user removed "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('removeUserItems',"picture", WhereIsTheUser);
+                                       
+                                        socket.on('recivedRemovedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                           
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                         console.log(items);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                                else if( userInput2[1] == 'BROOM'){
+                                            console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                            socket.emit('removeUserItems',"broom", WhereIsTheUser);
+                                       
+                                            socket.on('recivedRemovedUserItems', function(itemsString){
+                                            console.log("test");
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                                
+                                else if( userInput2[1] == 'PILLOW'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('removeUserItems',"pillow", WhereIsTheUser);
+                                       
+                                            socket.on('recivedRemovedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                            socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                                else if( userInput2[1] == 'BOX'){
+                                            console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                            socket.emit('removeUserItems',"box", WhereIsTheUser);
+                                       
+                                            socket.on('recivedRemovedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                            socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                            else if( userInput2[1] == 'PLATE'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('removeUserItems',"plate", WhereIsTheUser);
+                                       
+                                        socket.on('recivedRemovedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                            else if( userInput2[1] == 'CHARGER'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('removeUserItems',"charger", WhereIsTheUser);
+                                       
+                                        socket.on('recivedRemovedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                            $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                    
+                           else if( userInput2[1] == 'IRON'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('removeUserItems',"iron", WhereIsTheUser);
+                                       
+                                        socket.on('recivedRemovedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                            else if( userInput2[1] == 'PAPER'){
+                                        console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
+                                        socket.emit('removeUserItems',"paper", WhereIsTheUser);
+                                       
+                                        socket.on('recivedRemovedUserItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemList').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemList').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    
+                                    socket.on('recivedAddedRoomItems', function(itemsString){
+                                            let items = JSON.parse(itemsString);
+                                            //console.log( items , items.map(it=>it.name).join('<br>') );
+                                            $('#itemsInRoom').empty();
+                                            items.forEach((elem)=>{
+                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                })
+                                            });
+                                    }
+                        }break;       
                      
                     default: {
                         $('#status').append( '<br/>...command not recognized...');

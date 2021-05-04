@@ -1,5 +1,7 @@
 //initialisere express
 const express = require('express');
+const session = require('express-session');
+const bodyParser = require('body-parser');
 const app = express();
 const http = require('http');
 //ny variabel server, som bruger vores http til at lave en server
@@ -9,6 +11,102 @@ const io = new Server(server);
 const url = require('url');
 const path = require('path');
 const root = __dirname;
+
+//username and password section
+app.set('views', __dirname + '/views');
+app.engine('html', require('ejs').renderFile);
+
+app.use(session({
+	secret: 'ssshhhhh',
+	resave: false,			// default value
+    saveUninitialized: true // default value
+    /* see https://stackoverflow.com/questions/40381401/when-to-use-saveuninitialized-and-resave-in-express-session */
+}));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.get('/',(req,res)=>{
+	let sess=req.session;
+	//Session set when user Request our app via URL
+	if(sess.email){
+		/*
+		* This line check Session existence.
+		* If it existed will do some action.
+		*/
+		//res.redirect('/admin');
+        res.redirect('/main');
+	}
+	else{
+		res.render('index.html',{title:'Login Page'});
+	}
+});
+
+let users = {
+	'xxx':'123',
+	'abc':'blabla',
+	'gru':'shrikingmoon'
+};
+
+let userId =-1;
+let currentUsers=[];
+function AddToCurrentUsers(username){
+	this.name = username;
+}
+
+let validate = require('./userList.js');
+console.log( 'validate? ' , validate('xxx','123') );
+console.log( 'validate? ' , validate('asfasgsdfg','asdfasdfsdf') );
+console.log( 'validate? ' , validate('xxx','12345') );
+
+
+app.post('/login',(req,res)=>{
+	let sess=req.session;
+	// We assign email and password to sess.email and sess.pswd variables.
+	// The data comes from the submitted HTML page.
+	sess.email=req.body.email;
+	sess.pswd=req.body.pass;
+	console.log('User submitted this data:',sess);
+
+	let result = 'notCorrect';
+	let p = users[sess.email];
+	if (p){
+		if (p==sess.pswd){
+			// OK
+			result = 'everythingOK';
+		}
+	}
+	res.end( result );
+
+});
+
+//checking if the user is logged in 
+app.get('/main',(req,res)=>{
+	let sess=req.session;
+	if(sess.email){
+        //currentUser = sess.email;
+        currentUsers.push(new AddToCurrentUsers(sess.email));
+		res.sendFile(__dirname+'/public' + '/Task2.html');
+        //old page version
+        //res.write('<h1>Hello '+sess.email+'</h1>');
+        //res.end('<a href="/logout">Logout</a>');
+	} else{
+		res.write('<h1>Please login first.</h1>');
+		res.end('<a href="/">Login</a>');
+	}
+});
+
+app.get('/logout',(req,res)=>{
+	req.session.destroy(function(err){
+		if(err){
+			console.log(err);
+		} else {
+			res.redirect('/');
+		}
+	});
+});
+
+////End of username and password section
 
 let items = [];
 
@@ -93,7 +191,6 @@ let route = {
 	}
 }
 
-
 // serving static files - begin
 // route.for("GET","/jquery-3.3.1.min.js", function(request,response){
 // 	serverStatic(response,"public/jquery-3.3.1.min.js");
@@ -102,13 +199,21 @@ app.get('/jquery-3.3.1.min.js', (req, res) => {
 	res.sendFile(__dirname+'/public' + '/jquery-3.3.1.min.js');
 });
 
-app.get('/', (req, res) => {
+//does not work after password impementation
+/*app.get('/main', (req, res) => {
 	res.sendFile(__dirname+'/public' + '/Task2.html');
-});
+});*/
 
 io.on('connection', (socket) => {
      console.log('a user connected');
     io.emit('theItems', JSON.stringify(items));
+    
+     socket.on('Username', function(){
+         userId= userId+1;
+         console.log("user num"+ userId);
+          console.log('sendig Username'+ currentUsers[userId].name);
+        io.emit('recivedUsername', JSON.stringify(currentUsers[userId].name));
+    });
 
     
     socket.on('updateUserAndRoomInventory', function(msg){
@@ -147,22 +252,22 @@ io.on('connection', (socket) => {
         console.log('requestRoomItems '+ roomLocation);
 
             if (roomLocation== "corridor"){
-                console.log("sending " + roomLocation +"itmes" );
+                console.log("sending " + roomLocation +" items" );
                 io.emit('recivedRoomItems', JSON.stringify(corridor));
                 }
 
         else if (roomLocation == "livingroom"){
-                console.log("sending " + roomLocation +"itmes" );
+                console.log("sending " + roomLocation +" items" );
                 io.emit('recivedRoomItems', JSON.stringify(livingroom));
                 }
 
         else if (roomLocation == "basement"){
-                console.log("sending " + roomLocation +"itmes" );
+                console.log("sending " + roomLocation +" items" );
                 io.emit('recivedRoomItems', JSON.stringify(basement));
                 }
 
         else if (roomLocation == "upperfloor"){
-                console.log("sending " + roomLocation +"itmes" );
+                console.log("sending " + roomLocation +" items" );
                 io.emit('recivedRoomItems', JSON.stringify(upperfloor));
                 }
 
@@ -178,7 +283,7 @@ io.on('connection', (socket) => {
         console.log("user location " + userLocation);
 
         if (userLocation == "corridor"){
-            console.log('removed item from '+ corridor + " itmes");
+            console.log('removed item from '+ corridor + " items");
             let indexToRemove = corridor.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
             if (indexToRemove!=-1){
@@ -193,7 +298,7 @@ io.on('connection', (socket) => {
         }
     
         else if (userLocation == "livingroom"){
-            console.log('removed item from '+ livingroom + " itmes");
+            console.log('removed item from '+ livingroom + " items");
             let indexToRemove = livingroom.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
             if (indexToRemove!=-1){
@@ -207,7 +312,7 @@ io.on('connection', (socket) => {
         }
     
          else if (userLocation == "basement"){
-            console.log('removed item from '+ basement + " itmes");
+            console.log('removed item from '+ basement + " items");
             let indexToRemove = basement.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
             if (indexToRemove!=-1){
@@ -221,7 +326,7 @@ io.on('connection', (socket) => {
         }
 
         else if (userLocation == "upperfloor"){
-            console.log('removed item from '+ upperfloor + " itmes");
+            console.log('removed item from '+ upperfloor + " items");
             let indexToRemove = upperfloor.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
             if (indexToRemove!=-1){
@@ -307,7 +412,7 @@ io.on('connection', (socket) => {
 // });
 // serving static files - end
 app.post('/', (req,res)=>{
-	console.log('adding to the todo list...');
+	
 
 	let store = '';
     req.on('data', function(data){

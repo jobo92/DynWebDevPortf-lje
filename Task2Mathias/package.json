@@ -1,5 +1,5 @@
 {
-  "name": "task1",
+  "name": "task2",
   "version": "1.0.0",
   "description": "sockets",
   "main": "server.js",
@@ -11,6 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "socket.io": "^4.0.1"
+    "express-session": "^1.7.6",
+    "socket.io": "^4.0.1",
+    "body-parser": "^1.7.0",
+    "ejs": "^1.0.0"
   }
 }

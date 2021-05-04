@@ -1,0 +1,34 @@
+<html>
+<head>
+<title>Session Management in NodeJS using Express4.2</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+<script>
+$(document).ready(()=>{
+    let email,pass;
+    $('#submit').click(function(){
+        myEmail = $('#email').val();
+        myPass = $('#password').val();
+        // Perform some validation here ...
+        
+        $.post("http://localhost:9999/login",
+                {email:myEmail,pass:myPass},
+                (data)=>{
+                    //alert( data );
+                    if(data==='everythingOK'){
+                        window.location.href="/main";
+                    } else {
+                        alert('You are NOT logged-in!\nWrong user or password.');
+                    }
+        });
+
+    });
+});
+</script>
+</head>
+<body>
+<h1> <%= title%></h1>
+<input type="text" size="40" placeholder="Type your email" id="email"><br />
+<input type="password" size="40" placeholder="Type your password" id="password"><br />
+<input type="button" value="Submit" id="submit">
+</body>
+</html>

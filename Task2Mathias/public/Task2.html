@@ -49,7 +49,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 		<p><h2>Situation</h2>
 		<div id="status">...</div>
 		</p>
-        <b id="options"> Your options are Search/Basement/Livingroom/Upperfloor/quit/pickup/remove</b>
+        <b id="options"> Your options are Search/Basement/Livingroom/Upperfloor/Quit/Pickup/Remove</b>
 		<hr/>	
 
 		<!-- <b>What do you want to do? (search/kill/quit)</b> -->
@@ -73,7 +73,18 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             let username = "";
             let gameIsRunning = true;
             let chanceToFind = 15;
+            
            
+            var socket = io();
+            socket.emit('Username'); 
+            
+            //console.log ("userid: " + userId);
+            socket.on('recivedUsername', function(itemsString){
+            let username = JSON.parse(itemsString);
+            $('#userNameField').html("Welcome, your username is: " + username);                        
+            });
+            
+            
             // henter highscore liste og viser den på siden
             $.ajax({
                   type: "POST",
@@ -175,27 +186,31 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                     $("#userNameField").after( "<div id='hasHighScore'> You don't have a highscore yet</div>" );  
                 }
             } //End of inputUsername()
-            
-            var socket = io();
+    
+  
 
-var messages = document.getElementById('messages');
-var form = document.getElementById('form');
-var input = document.getElementById('input');
+    var messages = document.getElementById('messages');
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
 
-form.addEventListener('submit', function(e) {
-  e.preventDefault();
-  if (input.value) {
-    socket.emit('chat message', username+": " +input.value);
-    input.value = '';
-  }
-});
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', username+": " +input.value);
+        input.value = '';
+      }
+    });
 
-socket.on('chat message', function(msg) {
-    var item = document.createElement('li');
-    item.textContent = msg;
-    messages.appendChild(item);
-    window.scrollTo(0, document.body.scrollHeight);
-  });
+      //socket section 
+    // Getting the username from server 
+    
+
+    socket.on('chat message', function(msg) {
+        var item = document.createElement('li');
+        item.textContent = msg;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+      });
             
     /*socket.on('theItems', function(itemsString){
       var items = JSON.parse(itemsString);
@@ -827,6 +842,14 @@ socket.on('chat message', function(msg) {
                     }
                 }
             }
+            });
+            
+        // When you press enter on the textfield, 
+        // it automatically clicks on the button "send"
+          $('#message').keypress(function(e){
+            if (e.which == 13){ // on enter!
+                $( '#send' ).trigger( "click" );
+                }
             });
         
         });

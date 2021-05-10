@@ -2,6 +2,13 @@
 <head>
 
 <style>
+
+    .itemList { 
+        width:20%; float: right;
+        margin: 0 0 15px 10px;
+        clear: right;
+    }
+
 #status {
 	height: 150px;
 }
@@ -17,6 +24,9 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
       #messages > li:nth-child(odd) { background: #efefef; }
       
       #userItemsHeadline { width:20%; float: right; }
+
+
+
 </style>
 <script src="jquery-3.3.1.min.js"></script>
 
@@ -25,6 +35,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 </head>
 <body>
 	<h1>Simple Game</h1>
+
+    <div class='itemList' id="Corridor"></div>
+    <div class='itemList' id="Livingroom"></div>
+    <div class='itemList' id="Basement"></div>
+    <div class='itemList' id="Upperfloor"></div>
+
     <div id="userNameField"></div>
    <!-- <form method="POST">
 	Send highscore array to node: 
@@ -57,12 +73,23 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 		<input type="text" id="userInput"></input>
 		<button type="button" id="enterBtn">ENTER</button>
 
+        <br></br>
+        <form action=''>
+            <input id='formInput' autocomplete='off' /><button>Command Database</button>
+        </form>
+
+        <button type='button' id='resetDatabase'>Reset Database</button>
+
 	</p>
                 
 	<ul id="messages"></ul>
     <form id="form" action="">
       <input id="input" autocomplete="off" /><button>Send</button>
     </form>
+
+    
+
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
 
@@ -73,6 +100,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             let username = "";
             let gameIsRunning = true;
             let chanceToFind = 15;
+            let WhereIsTheUser = "corridor";
             
            
             var socket = io();
@@ -84,6 +112,21 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             $('#userNameField').html("Welcome, your username is: " + username);                        
             });
             
+
+            // Click function for command
+            $('form').submit(function(e){
+                e.preventDefault(); // Prevents page reloading
+                let input = $('#formInput').val()
+                socket.emit('command', input);
+                $('#formInput').val('');
+                return false;
+            });
+
+
+            $('#resetDatabase').click(function() {
+                socket.emit('resetDatabase', WhereIsTheUser);
+            });
+
             
             // henter highscore liste og viser den på siden
             $.ajax({
@@ -211,6 +254,21 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
         messages.appendChild(item);
         window.scrollTo(0, document.body.scrollHeight);
       });
+
+
+    socket.on('theItems', function(itemsString, roomName){
+        let items = JSON.parse(itemsString);
+        console.log(items);
+        //console.log( items , items.map(it=>it.name).join('<br>') );
+        $('#' + roomName).empty();
+        $('#' + roomName).append(roomName);
+        items.forEach((elem) => {
+          $('#' + roomName).append($('<li>').text(elem));
+        })
+    }); // End of socket.on('theItems')
+
+
+
             
     /*socket.on('theItems', function(itemsString){
       var items = JSON.parse(itemsString);
@@ -279,18 +337,27 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             // skal laves om
             const enterBtn = $('#enterBtn');	
             const userInput = $('#userInput');
-            let WhereIsTheUser = "corridor";
             console.log("setting rom items");
-                            socket.emit('requestRoomItems',WhereIsTheUser);
-                            socket.on('recivedRoomItems', function(itemsString)
-                                {
-                                let items = JSON.parse(itemsString);
-                                //console.log( items , items.map(it=>it.name).join('<br>') );
-                                $('#itemsInRoom').empty();
-                                items.forEach((elem)=>{
-                                    $('#itemsInRoom').append($('<li>').text(elem.name));
-                                      })
-                                })
+            
+
+
+            socket.emit('requestRoomItems', WhereIsTheUser);
+            
+            socket.on('receivedRoomItems', function(itemsString, theUpdatedRoom) {
+                if (theUpdatedRoom == WhereIsTheUser.toUpperCase()) {
+                    //might get to work later
+                }
+                let items = JSON.parse(itemsString);
+                console.log(items)
+                //console.log( items , items.map(it=>it.name).join('<br>') );
+                $('#itemsInRoom').empty();
+
+                items.forEach((elem)=>{
+                    $('#itemsInRoom').append($('<li>').text(elem));
+                });
+            });
+
+
             
             function encounterMonster() {
                 let dice = Math.floor(Math.random()*5)+1;
@@ -307,16 +374,25 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             
             
             $('#enterBtn').click(function(){
+
+                
+                $('#formInput').val('');
+
                 $('#status').html( 'Your status is now: ' + JSON.stringify(state));
                 if (state.hp <=0)
                     {
                         $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( ');
                         quit();
                     }else{
+
                         let userInput2 = [];
+
+                       
+
                         userInput2 = $('#userInput')[0].value.toUpperCase().split(" ");
                         console.log(userInput2);
                         //switch( $('#userInput')[0].value.toUpperCase() ){
+
                         switch( userInput2[0]){
         
                         
@@ -375,13 +451,13 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                         
                             WhereIsTheUser="basement"
                             socket.emit('requestRoomItems',WhereIsTheUser);
-                            socket.on('recivedRoomItems', function(itemsString)
+                            socket.on('receivedRoomItems', function(itemsString)
                                 {
                                 let items = JSON.parse(itemsString);
                                 //console.log( items , items.map(it=>it.name).join('<br>') );
                                 $('#itemsInRoom').empty();
                                 items.forEach((elem)=>{
-                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                    $('#itemsInRoom').append($('<li>').text(elem));
                                       })
                                 });
                         
@@ -400,13 +476,13 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                         
                             WhereIsTheUser="livingroom"
                             socket.emit('requestRoomItems',WhereIsTheUser);
-                            socket.on('recivedRoomItems', function(itemsString)
+                            socket.on('receivedRoomItems', function(itemsString)
                                 {
                                 let items = JSON.parse(itemsString);
                                 //console.log( items , items.map(it=>it.name).join('<br>') );
                                 $('#itemsInRoom').empty();
                                 items.forEach((elem)=>{
-                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                    $('#itemsInRoom').append($('<li>').text(elem));
                                       })
                                 });    
                         
@@ -425,13 +501,13 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                         
                             WhereIsTheUser="upperfloor"
                             socket.emit('requestRoomItems',WhereIsTheUser);
-                            socket.on('recivedRoomItems', function(itemsString)
+                            socket.on('receivedRoomItems', function(itemsString)
                                 {
                                 let items = JSON.parse(itemsString);
                                 //console.log( items , items.map(it=>it.name).join('<br>') );
                                 $('#itemsInRoom').empty();
                                 items.forEach((elem)=>{
-                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                    $('#itemsInRoom').append($('<li>').text(elem));
                                       })
                                 });
                                 
@@ -448,13 +524,13 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                             }
                             WhereIsTheUser="corridor";
                             socket.emit('requestRoomItems',WhereIsTheUser);
-                            socket.on('recivedRoomItems', function(itemsString)
+                            socket.on('receivedRoomItems', function(itemsString)
                                 {
                                 let items = JSON.parse(itemsString);
                                 //console.log( items , items.map(it=>it.name).join('<br>') );
                                 $('#itemsInRoom').empty();
                                 items.forEach((elem)=>{
-                                    $('#itemsInRoom').append($('<li>').text(elem.name));
+                                    $('#itemsInRoom').append($('<li>').text(elem));
                                       })
                                 })
                             encounterMonster();
@@ -477,12 +553,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -500,12 +576,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -523,12 +599,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -546,12 +622,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -569,12 +645,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -592,12 +668,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -615,12 +691,12 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -637,13 +713,13 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                                 })
                                             });
                                     
-                                    socket.on('recivedRoomItems', function(itemsString){
+                                    socket.on('receivedRoomItems', function(itemsString){
                                             let items = JSON.parse(itemsString);
                                             
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -670,7 +746,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -694,7 +770,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -717,7 +793,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -740,7 +816,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -763,7 +839,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -786,7 +862,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -809,7 +885,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }
@@ -831,7 +907,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                                             //console.log( items , items.map(it=>it.name).join('<br>') );
                                             $('#itemsInRoom').empty();
                                             items.forEach((elem)=>{
-                                                $('#itemsInRoom').append($('<li>').text(elem.name));
+                                                $('#itemsInRoom').append($('<li>').text(elem));
                                                 })
                                             });
                                     }

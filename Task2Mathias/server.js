@@ -12,6 +12,108 @@ const url = require('url');
 const path = require('path');
 const root = __dirname;
 
+// Adds all mongoose variables that are needed
+const mongoose = require('mongoose');
+const Room = require('./Room.model');
+const config = { useNewUrlParser: true, useUnifiedTopology: true };
+const URI = process.env.MONGODB_URI || 'mongodb://localhost/myUniqueDB';
+mongoose.connect(URI, config);
+const db = mongoose.connection;
+
+// Standard template which database will use
+let rooms = [
+    {name: "CORRIDOR", items: ["Icecream", "Potato"]},
+    {name: "LIVINGROOM", items: ["Ice", "Chips"]},
+    {name: "BASEMENT", items: ["Soda", "Axe"]},
+    {name: "UPPERFLOOR", items: ["Toy", "Ak47"]}
+]
+
+
+// cd C:\Users\Daniel Rose\Documents\GitHub Repositories\DynWebDevPortf-lje\Task2Mathias
+// "C:\Program Files\MongoDB\Server\4.4\bin\mongod.exe" --dbpath data
+// node server.js
+
+// Function to create schema values, by using the array "rooms"
+const createData = async () => {
+    try {
+        const results = await Room.create(rooms)
+        console.log(results)
+    } catch(err) {
+        console.log(error)
+    }
+}
+
+// Function to find and return all values within "Room" collection in database
+const findAll = async () => {
+    const results = await Room.find({});
+    //console.log("Found all these results: ");
+    //console.log(results);
+    return results
+}
+
+// Function to find items in rooms based on the name of the room then return the room document
+const findItemsByRoomName = async (namePara) => {
+    let results = await Room.find({ name: namePara });
+    console.log("In the room: " + namePara + " you can find these items:");
+    //results.forEach(element => console.log(element.items));
+    
+    if (results[0] != undefined) {
+        console.log(results[0].items);
+        return results
+    } else {
+        console.log("Could not find any items :(");
+        return
+    } 
+}
+
+// Function to update the items in specific room
+const updateItemsInRoom = async (gotID, arrayItems) => {
+    let results = await Room.updateOne({ _id: gotID }, { items: arrayItems });
+    console.log(results);
+    return
+}
+
+// Function to clear all data within the database
+const deleteAll = async () => {
+    await Room.deleteMany({});
+}
+
+// Function to convert first letter of a string to uppercase (used in database items handling)
+function capFirst(str) {
+
+    let smallstr = str.toLowerCase();
+    // converting first letter to uppercase
+    const capitalized = smallstr.charAt(0).toUpperCase() + smallstr.slice(1);
+
+    return capitalized;
+}
+
+// Functions to run when debugging
+
+//deleteAll().then((value) => { createData(); });
+//deleteAll();
+//findAll();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //username and password section
 app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile);
@@ -155,6 +257,7 @@ function UserItem(name){
 
 // *** load data from local file  ***
 const fs = require('fs');
+const { exit } = require('process');
 let myData = null;
 
 fs.readFile('highscore.txt', function (err, data) {
@@ -204,27 +307,47 @@ app.get('/jquery-3.3.1.min.js', (req, res) => {
 	res.sendFile(__dirname+'/public' + '/Task2.html');
 });*/
 
+
+
+
+
+
+
+
+
+
+
+
+// Start of io connection
 io.on('connection', (socket) => {
-     console.log('a user connected');
+
+    findAll().then( function(value) {
+        value.forEach(function(element) {
+            io.emit('theItems', JSON.stringify(element.items), capFirst(element.name));
+        });
+    });
+    
+    console.log('a user connected');
     io.emit('theItems', JSON.stringify(items));
     
-     socket.on('Username', function(){
-         userId= userId+1;
-         console.log("user num"+ userId);
-          console.log('sendig Username'+ currentUsers[userId].name);
+    socket.on('Username', function(){
+        userId= userId+1;
+        console.log("user num"+ userId);
+        console.log('sendig Username'+ currentUsers[userId].name);
         io.emit('recivedUsername', JSON.stringify(currentUsers[userId].name));
-    });
+    }); // End of socket.on
+    
 
-    
+
     socket.on('updateUserAndRoomInventory', function(msg){
-          console.log('reqitems'+ msg);
+        console.log('reqitems'+ msg);
         io.emit('reqItems', JSON.stringify(items));
-    });
-    
-//});
+    }); // End of socket.on
 	 
+
+
     socket.on('chat message', function(msg){
-         console.log('message: ' + msg);
+        console.log('message: ' + msg);
 
         let words = msg.split(' ');
         console.log (words);
@@ -243,38 +366,93 @@ io.on('connection', (socket) => {
                 io.emit('chat message', 'Could not remove '+words[2]+'!'); 
             }
         }
-         io.emit('chat message', msg);
-        });
+        io.emit('chat message', msg);
+    }); // End of socket.on
+
    
+
+    // When requested by the client, the sever finds items in the specified room from the database, and emits them back to client
     socket.on('requestRoomItems', function(location){
-       // let roomLocation = JSON.parse(location);
-        let roomLocation = location;
-        console.log('requestRoomItems '+ roomLocation);
-
-            if (roomLocation== "corridor"){
-                console.log("sending " + roomLocation +" items" );
-                io.emit('recivedRoomItems', JSON.stringify(corridor));
-                }
-
-        else if (roomLocation == "livingroom"){
-                console.log("sending " + roomLocation +" items" );
-                io.emit('recivedRoomItems', JSON.stringify(livingroom));
-                }
-
-        else if (roomLocation == "basement"){
-                console.log("sending " + roomLocation +" items" );
-                io.emit('recivedRoomItems', JSON.stringify(basement));
-                }
-
-        else if (roomLocation == "upperfloor"){
-                console.log("sending " + roomLocation +" items" );
-                io.emit('recivedRoomItems', JSON.stringify(upperfloor));
-                }
-
-        else {console.log("nothing found");}
-
-        });
+        let capLoc = location.toUpperCase();
+        findItemsByRoomName(capLoc).then( function(value) {
+            if (value != undefined) {
+                socket.emit('receivedRoomItems', JSON.stringify(value[0].items));
+            } else { console.log("Could not find location :(") }
+        }); // End of then()
+    }); // End of socket.on
     
+
+    // When the server gets the reset call it will reset the database and send out the newly created items
+    socket.on('resetDatabase', function(location){
+        let capLoc = location.toUpperCase();
+
+        deleteAll().then( function() {
+            createData().then( function() {
+                findItemsByRoomName(capLoc).then( function(value) {
+                    if (value != undefined) {
+                        socket.emit('receivedRoomItems', JSON.stringify(value[0].items), value[0].name);
+                    } else { console.log("Could not find location :(") }
+                    findAll().then( function(value) {
+                        value.forEach(function(element) {
+                            io.emit('theItems', JSON.stringify(element.items), capFirst(element.name));
+                        });
+                    })
+                })
+            })
+        });
+    }); // End of socket.on
+    
+
+
+    // When "commanded" by client the server will add or remove items from specified room
+    socket.on('command', function(msg){
+        
+        if (msg == null) return;
+        let messageArray = msg.toUpperCase().split(" ");
+        //console.log(messageArray);
+
+        if (messageArray[0] == "IN") {
+
+            findItemsByRoomName(messageArray[1]).then( function(value) {
+                if (value != undefined) {
+
+                    let items = value[0].items;
+                    let id = value[0].id;
+                    let name = value[0].name;
+
+                    if (messageArray[2] == "ADD") {
+                        if (messageArray[3] != undefined) items.push(capFirst(messageArray[3]));
+                        //socket.emit('receivedRoomItems', JSON.stringify(items), name);
+                        updateItemsInRoom(id, items).then( function() {
+                            io.emit('theItems', JSON.stringify(items), capFirst(name));
+                            findItemsByRoomName(messageArray[1]);
+                        });
+
+                    } else if (messageArray[2] == "REMOVE") {
+
+                        const index = items.indexOf(capFirst(messageArray[3])); 
+                        if (index > -1) { 
+                            items.splice(index, 1); 
+                        }
+
+                        //socket.emit('receivedRoomItems', JSON.stringify(items), name);
+                        updateItemsInRoom(id, items).then( function() {
+                            io.emit('theItems', JSON.stringify(items), capFirst(name));
+                            findItemsByRoomName(messageArray[1]);
+                        });
+                    }
+                } // End if if (value != undefined)
+
+            }); // End of then()
+
+        } // End of if (messageArray[0] == "IN")
+
+    }); // End of socket.on('command')
+
+
+
+
+
     socket.on('addUserItem', function(itemName,location){
         let addItem = itemName;
         let userLocation =location; 
@@ -286,60 +464,64 @@ io.on('connection', (socket) => {
             console.log('removed item from '+ corridor + " items");
             let indexToRemove = corridor.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+            
             if (indexToRemove!=-1){
                 console.log('add items '+ addItem + " to user items");
-            userItems.push( new UserItem(addItem) );
+                userItems.push( new UserItem(addItem) );
                 corridor.splice(indexToRemove,1);
                 console.log("sending user items" + userItems);
                 io.emit('recivedUserItems', JSON.stringify(userItems));// refresh the list of user item
-                io.emit('recivedRoomItems', JSON.stringify(corridor));
+                io.emit('receivedRoomItems', JSON.stringify(corridor));
             }
         // refresh the list of room item
-        }
-    
-        else if (userLocation == "livingroom"){
+        } else if (userLocation == "livingroom"){
             console.log('removed item from '+ livingroom + " items");
             let indexToRemove = livingroom.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+            
             if (indexToRemove!=-1){
                 console.log('add items '+ addItem + " to user items");
-        userItems.push( new UserItem(addItem) );
+                userItems.push( new UserItem(addItem) );
                 livingroom.splice(indexToRemove,1);
             }
+            
             console.log("sending user items" + userItems);
-            io.emit('recivedUserItems', JSON.stringify(userItems));// refresh the list of user item
-            io.emit('recivedRoomItems', JSON.stringify(livingroom));// refresh the list of room item
-        }
-    
-         else if (userLocation == "basement"){
+            io.emit('recivedUserItems', JSON.stringify(userItems)); // refresh the list of user item
+            io.emit('receivedRoomItems', JSON.stringify(livingroom)); // refresh the list of room item
+
+        } else if (userLocation == "basement"){
             console.log('removed item from '+ basement + " items");
             let indexToRemove = basement.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+
             if (indexToRemove!=-1){
                 basement.splice(indexToRemove,1);
                 console.log('add items '+ addItem + " to user items");
-        userItems.push( new UserItem(addItem) );
+                userItems.push( new UserItem(addItem) );
             }
+            
             console.log("sending user items" + userItems);
             io.emit('recivedUserItems', JSON.stringify(userItems));// refresh the list of user item
-            io.emit('recivedRoomItems', JSON.stringify(basement));// refresh the list of room item
-        }
+            io.emit('receivedRoomItems', JSON.stringify(basement));// refresh the list of room item
 
-        else if (userLocation == "upperfloor"){
+        } else if (userLocation == "upperfloor"){
             console.log('removed item from '+ upperfloor + " items");
             let indexToRemove = upperfloor.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+
             if (indexToRemove!=-1){
                 upperfloor.splice(indexToRemove,1);
                 console.log('add items '+ addItem + " to user items");
-        userItems.push( new UserItem(addItem) );
+                userItems.push( new UserItem(addItem) );
             }
             console.log("sending user items" + userItems);
             io.emit('recivedUserItems', JSON.stringify(userItems));// refresh the list of user item
-            io.emit('recivedRoomItems', JSON.stringify(upperfloor));// refresh the list of room item
+            io.emit('receivedRoomItems', JSON.stringify(upperfloor));// refresh the list of room item
         }
-    });
+    }); // End of socket.on
+
     
+
     socket.on('removeUserItems', function(itemName,location){
         let addItem = itemName;
         let userLocation =location; 
@@ -352,35 +534,36 @@ io.on('connection', (socket) => {
             console.log('removed item from user '+ " items");
             let indexToRemove = userItems.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+
             if (indexToRemove!=-1){
-                        console.log('add items to corridor room items');
-            corridor.push( new UserItem(addItem) );
+                console.log('add items to corridor room items');
+                corridor.push( new UserItem(addItem) );
                 userItems.splice(indexToRemove,1);
                 console.log("sending user items" + userItems);
                 io.emit('recivedRemovedUserItems', JSON.stringify(userItems));// refresh the list of user item
                 io.emit('recivedAddedRoomItems', JSON.stringify(corridor));// refresh the list of room item
             }
-        }
 
-        else if (userLocation == "livingroom"){
+        } else if (userLocation == "livingroom"){
             console.log('add items '+ " to this room items");
             console.log('removed item from '+ livingroom + " itmes");
             let indexToRemove = userItems.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+
             if (indexToRemove!=-1){
                 livingroom.push( new UserItem(addItem) );
                 userItems.splice(indexToRemove,1);
-                 console.log("sending user items" + userItems);
+                console.log("sending user items" + userItems);
                 io.emit('recivedRemovedUserItems', JSON.stringify(userItems));// refresh the list of user item
                 io.emit('recivedAddedRoomItems', JSON.stringify(livingroom));// refresh the list of room item
             }
-        }
 
-        else if (userLocation == "basement"){
-             console.log('add items '+ addItem + " to this room items");
+        } else if (userLocation == "basement"){
+            console.log('add items '+ addItem + " to this room items");
             console.log('removed item from '+ basement + " itmes");
             let indexToRemove = userItems.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+
             if (indexToRemove!=-1){
                 basement.push( new UserItem(addItem) );
                 userItems.splice(indexToRemove,1);
@@ -388,23 +571,37 @@ io.on('connection', (socket) => {
                 io.emit('recivedRemovedUserItems', JSON.stringify(userItems));// refresh the list of user item
                 io.emit('recivedAddedRoomItems', JSON.stringify(basement));// refresh the list of room item
             }
-        }
-
-        else if (userLocation == "upperfloor"){
-              console.log('add items '+ addItem + " to this room items");
+            
+        } else if (userLocation == "upperfloor"){
+            console.log('add items '+ addItem + " to this room items");
             console.log('removed item from '+ upperfloor + " itmes");
             let indexToRemove = userItems.findIndex((elem)=>elem.name==addItem);
             console.log( addItem,indexToRemove );
+
             if (indexToRemove!=-1){
                 upperfloor.push( new UserItem(addItem) );
                 userItems.splice(indexToRemove,1);
                  console.log("sending user items" + userItems);
-            io.emit('recivedRemovedUserItems', JSON.stringify(userItems));// refresh the list of user item
-            io.emit('recivedAddedRoomItems', JSON.stringify(upperfloor));// refresh the list of room item
-                }
+                io.emit('recivedRemovedUserItems', JSON.stringify(userItems));// refresh the list of user item
+                io.emit('recivedAddedRoomItems', JSON.stringify(upperfloor));// refresh the list of room item
             }
-    });
-});
+
+        } // End of if (userLocation == "corridor")
+        
+    }); // End of socket.on
+
+}); // End of io.on('connection')
+
+
+
+
+
+
+
+
+
+
+
 
 // route.for("GET","/", function(request,response){
 // 	serverStatic(response,"public/Task1.html");
@@ -537,4 +734,4 @@ function onRequest(request,response){
 
 server.listen(9999, () => {
 	console.log('listening on *:9999');
-  });
+});

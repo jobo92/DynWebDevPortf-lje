@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <title>Client, Server, Database Combined!!!</title>
+    
+    <style>
+    
+      .itemList { 
+        width:20%; float: right;
+        margin: 0 0 40px 10px;
+        clear: right;
+      }
+
+    </style>
+
+
+    
+    <script src='/socket.io/socket.io.js'></script>
+    <script src='https://code.jquery.com/jquery-1.11.1.js'></script>
+
+  </head>
+
+  <body>
+
+    <button type='button' id='button'>Test Me!</button>
+    <div class='itemList' id="Living_room">Living_room</div>
+    <div class='itemList' id="Corridor">Corridor</div>
+    <div class='itemList' id="Basement">Basement</div>
+    <div class='itemList' id="Boss_room">Boss_room</div>
+    <br><br>
+    <p>In "RoomName" add/remove "ItemName"</p>
+    <form action=''>
+      <input id='formInput' autocomplete='off' /><button>Command Database</button>
+    </form>
+
+  </body>
+
+  <script>
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+
+      var socket = io();
+
+      $('form').submit(function(e){
+        e.preventDefault(); // Prevents page reloading
+        let input = $('#formInput').val()
+        socket.emit('command', input);
+        $('#formInput').val('');
+        return false;
+      });
+
+      socket.on('theItems', function(itemsString, roomName){
+        let items = JSON.parse(itemsString);
+        console.log(items);
+        //console.log( items , items.map(it=>it.name).join('<br>') );
+        $('#' + roomName).empty();
+        $('#' + roomName).append(roomName);
+        items.forEach((elem)=>{
+          $('#' + roomName).append($('<li>').text(elem));
+        })
+      });
+
+    })
+    
+  </script>
+
+</html> 

@@ -36,7 +36,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 
     <div id="userNameField"></div>
     <div id="userItemsHeadline"><h3 > User items</h3>
-            <div id="itemList">
+            <div id="userItemList">
             </div>
         </div>
     <h1>Highscore:</h1>
@@ -62,7 +62,8 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
         </form>
 
         <button type='button' id='resetDatabase'>Reset Database</button>
-        <button type='button' id='testButton'>test Button</button>
+        <button type='button' id='testButton'>take item in room</button>
+        <button type='button' id='removeButton'>remove item from user</button>
 
 	</p>
                 
@@ -88,11 +89,13 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             let WhereIsTheUser = "corridor";
             
             var socket = io();
-            socket.emit('Username'); 
+            
+            socket.emit('requestUsername'); 
             
             socket.on('recivedUsername', function(itemsString){
-            let username = JSON.parse(itemsString);
-            $('#userNameField').html("Welcome, your username is: " + username);                        
+                username = JSON.parse(itemsString);
+                $('#userNameField').html("Welcome, your username is: " + username);
+                console.log("updated username" + username);
             });
             
 
@@ -113,6 +116,10 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             $('#testButton').click(function() {
                 socket.emit('addUserItem', "Icecream","admin","CORRIDOR");
                 //socket.emit('testButton');
+            });
+            
+            $('#removeButton').click(function() {
+                socket.emit('RemoveUserItemToFloor', "Icecream","admin","CORRIDOR");
             });
 
 
@@ -330,6 +337,9 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                     $('#itemsInRoom').append($('<li>').text(elem));
                 });
             });
+            
+            
+            
 
 
             
@@ -355,20 +365,34 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 
             function updateUserItems(useritems){
                 let items = JSON.parse(useritems);
-                                            //console.log( items , items.map(it=>it.name).join('<br>') );
-                                            $('#itemList').empty();
-                                            items.forEach((elem)=>{
-                                                $('#itemList').append($('<li>').text(elem.name));
-                                                })
+                console.log( items , items.map(it=>it.name).join('<br>') );
+                $('#userItemList').empty();
+                items.forEach((elem)=>{
+                    $('#userItemList').append($('<li>').text(elem));
+                    })
             }
 
-            function pickupItem(item,user,room){
-                socket.emit('addUserItem',item, user, room);
+            function pickupItem(item,username,room){
+                
+                let roomItem = item.toLowerCase();
+                roomItem = roomItem.charAt(0).toUpperCase() + roomItem.slice(1);
+                console.log(roomItem+" "+username+" "+room.toUpperCase())
+                socket.emit('addUserItem',roomItem, username, room.toUpperCase());
             }
 
-            function removeItem(item,user,room){
-                socket.emit('removeUserItems',item, user, room);
+            function removeItem(item,username,room){
+                socket.emit('removeUserItems',item, username, room);
             }
+            
+            
+            socket.on('receivedRoomItems', function(itemsString){
+                updateRoomItem(itemsString);
+            });
+            
+            socket.on('recivedUserItems', function(itemsString){
+               updateUserItems(itemsString)
+            });
+            
             
             
             $('#enterBtn').click(function(){
@@ -513,7 +537,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                 case 'PICKUP':{
 
                     //har ikke user endnu, skal defineres senere.
-                    pickupItem(userInput2[1],user,WhereIsTheUser);
+                    pickupItem(userInput2[1],username,WhereIsTheUser);
                             //     if( userInput2[1] == 'PICTURE'){
                             //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
                             //             socket.emit('addUserItem',"picture", WhereIsTheUser);
@@ -680,6 +704,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                             }break;
                                 
                 case 'REMOVE':{
+                                removeItemItem(userInput2[1],username,WhereIsTheUser);
                         //     if( userInput2[1] == 'PICTURE'){
                         //                 console.log(" user removed "+ userInput2[1] + "they are in " + WhereIsTheUser);
                         //                 socket.emit('removeUserItems',"picture", WhereIsTheUser);

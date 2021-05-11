@@ -50,7 +50,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 		<p><h2>Situation</h2>
 		<div id="status">...</div>
 		</p>
-        <b id="options"> Your options are Search/Basement/Livingroom/Upperfloor/Quit/Pickup/Remove</b>
+        <b id="options"> Your options are Search/Basement/Livingroom/Upperfloor/Quit/Pickup/Drop</b>
 		<hr/>	
 		<br/>
 		<input type="text" id="userInput"></input>
@@ -62,8 +62,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
         </form>
 
         <button type='button' id='resetDatabase'>Reset Database</button>
-        <button type='button' id='testButton'>take item in room</button>
-        <button type='button' id='removeButton'>remove item from user</button>
+        <button type='button' id='testButton'>Test Button</button>
 
 	</p>
                 
@@ -110,18 +109,14 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 
             //når man trykker på resetDatabaseknappen
             $('#resetDatabase').click(function() {
-                socket.emit('resetDatabase', WhereIsTheUser);
+                socket.emit('resetDatabase', WhereIsTheUser, username);
             });
 
             $('#testButton').click(function() {
-                socket.emit('addUserItem', "Icecream","admin","CORRIDOR");
-                //socket.emit('testButton');
+                //socket.emit('addUserItem', "Icecream","admin","CORRIDOR");
+                socket.emit('testButton');
             });
             
-            $('#removeButton').click(function() {
-                socket.emit('RemoveUserItemToFloor', "Icecream","admin","CORRIDOR");
-            });
-
 
             
             // // henter highscore liste og viser den på siden
@@ -329,13 +324,13 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             socket.emit('requestRoomItems', WhereIsTheUser);
             socket.on('receivedRoomItems', function(itemsString, theUpdatedRoom) {
                 if (theUpdatedRoom == WhereIsTheUser.toUpperCase()) {
-                    //might get to work later
+                    let items = JSON.parse(itemsString);             
+                    $('#itemsInRoom').empty();
+                    items.forEach((elem)=>{
+                        $('#itemsInRoom').append($('<li>').text(elem));
+                    });
                 }
-                let items = JSON.parse(itemsString);             
-                $('#itemsInRoom').empty();
-                items.forEach((elem)=>{
-                    $('#itemsInRoom').append($('<li>').text(elem));
-                });
+                
             });
             
             
@@ -372,16 +367,20 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                     })
             }
 
+            // Pickup item
             function pickupItem(item,username,room){
-                
                 let roomItem = item.toLowerCase();
                 roomItem = roomItem.charAt(0).toUpperCase() + roomItem.slice(1);
                 console.log(roomItem+" "+username+" "+room.toUpperCase())
                 socket.emit('addUserItem',roomItem, username, room.toUpperCase());
             }
 
-            function removeItem(item,username,room){
-                socket.emit('removeUserItems',item, username, room);
+            // Drops item
+            function dropItem(item,username,room){
+                let roomItem = item.toLowerCase();
+                roomItem = roomItem.charAt(0).toUpperCase() + roomItem.slice(1);
+                console.log(roomItem+" "+username+" "+room.toUpperCase())
+                socket.emit('dropItemsInRoom',item, username, room);
             }
             
             
@@ -534,370 +533,28 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                             $('#options').replaceWith('<b id="options" ><br/>your options are Search/Basement/Livingroom/Upperfloor/Quit </b>');
                     } break;
                                 
-                case 'PICKUP':{
 
-                    //har ikke user endnu, skal defineres senere.
+
+                case 'PICKUP':{
+                    
+                    // Pass values to funtion which sends it via socket to the server
                     pickupItem(userInput2[1],username,WhereIsTheUser);
-                            //     if( userInput2[1] == 'PICTURE'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"picture", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 updateUserItems(itemsString);
-                            //                 });
-                                    
-                            //             socket.on('receivedRoomItems', function(itemsString){
-                            //                 updateRoomItem(itemsString);
-                            //                 });
-                            //         }
-                    
-                            //     else if( userInput2[1] == 'BROOM'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"broom", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 updateUserItems(itemsString);
-                            //                 });
-                                    
-                            //         socket.on('receivedRoomItems', function(itemsString){
-                            //                 updateRoomItem(itemsString);
-                            //                 });
-                            //         }
+                
+                } break;
                                 
-                            //    else if( userInput2[1] == 'PILLOW'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"pillow", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemList').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemList').append($('<li>').text(elem.name));
-                            //                     })
-                            //                 });
-                                    
-                            //         socket.on('receivedRoomItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemsInRoom').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemsInRoom').append($('<li>').text(elem));
-                            //                     })
-                            //                 });
-                            //         }
+                case 'DROP':{
                     
-                            //     else if( userInput2[1] == 'BOX'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"box", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemList').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemList').append($('<li>').text(elem.name));
-                            //                     })
-                            //                 });
-                                    
-                            //         socket.on('receivedRoomItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemsInRoom').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemsInRoom').append($('<li>').text(elem));
-                            //                     })
-                            //                 });
-                            //         }
-                    
-                            //     else if( userInput2[1] == 'PLATE'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"plate", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemList').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemList').append($('<li>').text(elem.name));
-                            //                     })
-                            //                 });
-                                    
-                            //         socket.on('receivedRoomItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemsInRoom').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemsInRoom').append($('<li>').text(elem));
-                            //                     })
-                            //                 });
-                            //         }
-                    
-                            //     else if( userInput2[1] == 'CHARGER'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"charger", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemList').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemList').append($('<li>').text(elem.name));
-                            //                     })
-                            //                 });
-                                    
-                            //         socket.on('receivedRoomItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemsInRoom').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemsInRoom').append($('<li>').text(elem));
-                            //                     })
-                            //                 });
-                            //         }
-                    
-                            //     else if( userInput2[1] == 'IRON'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"iron", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemList').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemList').append($('<li>').text(elem.name));
-                            //                     })
-                            //                 });
-                                    
-                            //         socket.on('receivedRoomItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemsInRoom').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemsInRoom').append($('<li>').text(elem));
-                            //                     })
-                            //                 });
-                            //         }
-                            //     else if( userInput2[1] == 'PAPER'){
-                            //             console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                            //             socket.emit('addUserItem',"paper", WhereIsTheUser);
-                                       
-                            //             socket.on('recivedUserItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemList').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemList').append($('<li>').text(elem.name));
-                            //                     })
-                            //                 });
-                                    
-                            //         socket.on('receivedRoomItems', function(itemsString){
-                            //                 let items = JSON.parse(itemsString);
-                                            
-                            //                 //console.log( items , items.map(it=>it.name).join('<br>') );
-                            //                 $('#itemsInRoom').empty();
-                            //                 items.forEach((elem)=>{
-                            //                     $('#itemsInRoom').append($('<li>').text(elem));
-                            //                     })
-                            //                 });
-                            //         }
-                            }break;
-                                
-                case 'REMOVE':{
-                                removeItemItem(userInput2[1],username,WhereIsTheUser);
-                        //     if( userInput2[1] == 'PICTURE'){
-                        //                 console.log(" user removed "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                 socket.emit('removeUserItems',"picture", WhereIsTheUser);
-                                       
-                        //                 socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                                           
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //             socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                  console.log(items);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                    
-                        //         else if( userInput2[1] == 'BROOM'){
-                        //                     console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                     socket.emit('removeUserItems',"broom", WhereIsTheUser);
-                                       
-                        //                     socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     console.log("test");
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //             socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                                
-                        //         else if( userInput2[1] == 'PILLOW'){
-                        //                 console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                 socket.emit('removeUserItems',"pillow", WhereIsTheUser);
-                                       
-                        //                     socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //                     socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                    
-                        //         else if( userInput2[1] == 'BOX'){
-                        //                     console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                     socket.emit('removeUserItems',"box", WhereIsTheUser);
-                                       
-                        //                     socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //                     socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                    
-                        //     else if( userInput2[1] == 'PLATE'){
-                        //                 console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                 socket.emit('removeUserItems',"plate", WhereIsTheUser);
-                                       
-                        //                 socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //             socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                    
-                        //     else if( userInput2[1] == 'CHARGER'){
-                        //                 console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                 socket.emit('removeUserItems',"charger", WhereIsTheUser);
-                                       
-                        //                 socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                     $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //             socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                    
-                        //    else if( userInput2[1] == 'IRON'){
-                        //                 console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                 socket.emit('removeUserItems',"iron", WhereIsTheUser);
-                                       
-                        //                 socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //             socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                        //     else if( userInput2[1] == 'PAPER'){
-                        //                 console.log(" user picked up "+ userInput2[1] + "they are in " + WhereIsTheUser);
-                        //                 socket.emit('removeUserItems',"paper", WhereIsTheUser);
-                                       
-                        //                 socket.on('recivedRemovedUserItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemList').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemList').append($('<li>').text(elem.name));
-                        //                         })
-                        //                     });
-                                    
-                        //             socket.on('recivedAddedRoomItems', function(itemsString){
-                        //                     let items = JSON.parse(itemsString);
-                        //                     //console.log( items , items.map(it=>it.name).join('<br>') );
-                        //                     $('#itemsInRoom').empty();
-                        //                     items.forEach((elem)=>{
-                        //                         $('#itemsInRoom').append($('<li>').text(elem));
-                        //                         })
-                        //                     });
-                        //             }
-                        }break;       
-                     
-                    default: {
-                        $('#status').append( '<br/>...command not recognized...');
-                    }
+                    // Pass values to funtion which sends it via socket to the server
+                    dropItem(userInput2[1],username,WhereIsTheUser);
+                
+                } break;       
+                
+                default: {
+                    $('#status').append( '<br/>...command not recognized...');
                 }
             }
-            });
+        }
+    });
             
         // When you press enter on the textfield, 
         // it automatically clicks on the button "send"

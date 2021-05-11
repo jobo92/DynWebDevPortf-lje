@@ -22,7 +22,8 @@ mongoose.connect(URI, config);
 const db = mongoose.connection;
 
 
-// Standard template which database will use
+
+// Standard template which database will use to create rooms
 let rooms = [
     {name: "CORRIDOR", items: ["Icecream", "Potato"]},
     {name: "LIVINGROOM", items: ["Ice", "Chips"]},
@@ -30,14 +31,12 @@ let rooms = [
     {name: "UPPERFLOOR", items: ["Toy", "Ak47"]}
 ]
 
+// Standard template which database will use to create users
 let usernameDB= [
-    {username: "admin", password: "admin", items: ["Ice","chips"], highscore:1000}
+    {username: "admin", password: "admin", items: ["Ice","Chips","Moonblade"], highscore:1000}
 ]
 
 
-// cd C:\Users\Daniel Rose\Documents\GitHub Repositories\DynWebDevPortf-lje\Task2Mathias
-// "C:\Program Files\MongoDB\Server\4.4\bin\mongod.exe" --dbpath data
-// node server.js
 
 // Function to create schema values, by using the array "rooms"
 const createData = async () => {
@@ -68,28 +67,28 @@ const findAllUsers = async () => {
 // Function to find items in rooms based on the name of the room then return the room document
 const findItemsByRoomName = async (namePara) => {
     let results = await Room.find({ name: namePara });
-    console.log("In the room: " + namePara + " you can find these items:");
+    console.log("In the room: " + namePara + ", you can find these items:");
     //results.forEach(element => console.log(element.items));
     
     if (results[0] != undefined) {
         console.log(results[0].items);
         return results
     } else {
-        console.log("Could not find any items :(");
+        console.log("Could not find any items in specified room :(");
         return
     } 
 }
 
 const findItemsByUserName = async (namePara) => {
     let results = await User.find({ username: namePara });
-    console.log("In the room: " + namePara + " you can find these items:");
+    console.log("The player: " + namePara + ", currently has these these items:");
     //results.forEach(element => console.log(element.items));
     
     if (results[0] != undefined) {
         console.log(results[0].items);
         return results
     } else {
-        console.log("Could not find any items :(");
+        console.log("Could not find any items on player:(");
         return
     } 
 }
@@ -107,7 +106,6 @@ const updateItemsInUser = async (gotID, arrayItems) => {
     return
 }
 
-
 // Function to clear all data within the database
 const deleteAll = async () => {
     await Room.deleteMany({});
@@ -123,6 +121,40 @@ function capFirst(str) {
 
     return capitalized;
 }
+
+// Updates the temporary database view to the right on the page (can be removed later)
+function sendDatabaseView() {
+    findAllRooms().then( function(value) {
+        value.forEach(function(element) {
+            io.emit('theItems', JSON.stringify(element.items), capFirst(element.name)); 
+        });
+    })
+}
+
+// Updates the list of user items on a specific users page
+function sendUserItems(channel, userName) {
+    findItemsByUserName(userName).then(function(results){
+        channel.emit('recivedUserItems', JSON.stringify(results[0].items));
+    })
+}
+
+// Updates a specific room list on the page and only for the user that are currently in the room
+function sendSingleRoom(roomName) {
+    sendDatabaseView();
+    findItemsByRoomName(roomName).then(function(results){
+        io.emit('receivedRoomItems',JSON.stringify(results[0].items), roomName) 
+    });
+}
+
+
+
+
+
+
+
+
+
+
 
 var highscoreUser;
 
@@ -342,6 +374,7 @@ io.on('connection', (socket) => {
         console.log("user number "+ userId);
         console.log('sending Username '+ currentUsers[userId].name);
         io.emit('recivedUsername', JSON.stringify(currentUsers[userId].name));
+        sendUserItems(socket, currentUsers[userId].name);
     }); // End of socket.on
     
 
@@ -351,16 +384,15 @@ io.on('connection', (socket) => {
         io.emit('reqItems', JSON.stringify(items));
     }); // End of socket.on
 
-    socket.on('testButton', function(){
-        findItemsByUserName("admin").then( function(results){
-            console.log(results[0].items);
-            let id = results[0]._id;
-            let newItems = ["kakao","malk"];
 
-            updateItemsInUser(id,newItems);
-        });
+    // Button to test small code in
+    socket.on('testButton', function(){
+
+        sendDatabaseView();
        
-    }); // End of socket.on
+    }); // End of socket.on('testButton')
+
+
 
     //laves når vi har databasen klar---------------------------------------------------
     // socket.on('highscoreUsername', function(){
@@ -390,7 +422,7 @@ io.on('connection', (socket) => {
             }
         }
         io.emit('chat message', msg);
-    }); // End of socket.on
+    }); // End of socket.on('chat message')
 
    
 
@@ -401,31 +433,22 @@ io.on('connection', (socket) => {
             if (value != undefined) {
                 socket.emit('receivedRoomItems', JSON.stringify(value[0].items));
             } else { console.log("Could not find location :(") }
-        }); // End of then()
-    }); // End of socket.on
+        });
+    }); // End of socket.on('requestRoomItems')
     
 
+
     // When the server gets the reset call it will reset the database and send out the newly created items
-    socket.on('resetDatabase', function(location){
+    socket.on('resetDatabase', function(location, user){
         let capLoc = location.toUpperCase();
 
         deleteAll().then( function() {
             createData().then( function() {
-                findItemsByRoomName(capLoc).then( function(value) {
-                    if (value != undefined) {
-                        socket.emit('receivedRoomItems', JSON.stringify(value[0].items), value[0].name);
-                    } else { console.log("Could not find location :(") }
-                    findAllRooms().then( function(value) {
-                        value.forEach(function(element) {
-                            io.emit('theItems', JSON.stringify(element.items), capFirst(element.name));
-                            
-                        });
-                        findAllUsers();
-                    })
-                })
+                sendSingleRoom(capLoc);
+                sendUserItems(socket, user);
             })
         });
-    }); // End of socket.on
+    }); // End of socket.on('resetDatabase')
     
 
 
@@ -466,168 +489,51 @@ io.on('connection', (socket) => {
                             findItemsByRoomName(messageArray[1]);
                         });
                     }
-                } // End if if (value != undefined)
-
-            }); // End of then()
-
-        } // End of if (messageArray[0] == "IN")
-
+                } 
+            }); 
+        } 
     }); // End of socket.on('command')
 
 
 
+    // This socket removes an item from a specified room, adds it to the user and sends out an updated list of room items
+    socket.on('addUserItem', function(itemName,user,location) {
+        console.log("Trying to add item: " + itemName + ", to user: " + user + ", in room: " + location);
 
+        findItemsByRoomName(location).then(function(results){
+            let newItems = results[0].items;
+            let roomId = results[0]._id;
+            const index = newItems.indexOf(itemName); 
+            if (index > -1) { 
+                newItems.splice(index, 1);
 
-    socket.on('addUserItem', function(itemName,user,location){
-        let addItem = itemName;
-        let theUser = user;
-        let userLocation = location; 
-        console.log("add item Username: " + theUser + " " + addItem );
-        
-        findItemsByRoomName(userLocation).then(function(results){
-        let newItems = results[0].items;
-        let id = results[0]._id;
+                updateItemsInRoom(roomId,newItems).then( function() {
+                    sendSingleRoom(location);
 
-        const index = newItems.indexOf(addItem); 
-                        console.log("index " + index);
-                        if (index > -1) { 
-                            newItems.splice(index, 1);
-                            updateItemsInRoom(id,newItems);
-                            findItemsByRoomName(userLocation).then(function(results){
-                                console.log(results);
-                                io.emit('receivedRoomItems',JSON.stringify(results[0].items))
+                    findItemsByUserName(user).then(function(results){
+                        let userId = results[0]._id;
+                        let userItems = results[0].items;
+                        userItems.push(itemName);
 
-                                    findItemsByUserName(theUser).then(function(results){
-                                        let userId = results[0]._id;
-                                        let userItems = results[0].items;
-                                        userItems.push(addItem);
-                                        //io.emit('theItems',JSON.stringify(userItems));
-                                        // console.log("useritems: "+ Array.isArray(userItems));
-                                        // console.log(userItems);
-                                        updateItemsInUser(userId,userItems).then(function(){
-                                            findAllUsers();
-                                            findItemsByUserName(theUser).then(function(results){
-                                                console.log("test" + results[0].items);
-                                                io.emit('recivedUserItems',JSON.stringify(results[0].items));
-                                                })
-                                        });
-
-                                 });
-                              
-                            });
-                        }
-            
-                        else{
-                            console.log("there are no items here");
-                        }
+                        updateItemsInUser(userId,userItems).then(function(){
+                            sendUserItems(socket, user);
+                        });
+                    });  
+                })
+            } else { console.log("There is no such item is this room, can't add it to user"); }
         });
-
-    }); // End of socket.on
-    
-    socket.on('RemoveUserItemToFloor', function(itemName,user,location){
-        let removeItem = itemName;
-        let theUser = user;
-        let userLocation = location; 
-        console.log("RemoveUserItemToFloor");
-        findItemsByUserName(theUser).then(function(results){
-        let userItems = results[0].items;
-        let id = results[0]._id;
-
-        const index = userItems.indexOf(removeItem); 
-                        if (index > -1) { 
-                            userItems.splice(index, 1);
-                            updateItemsInUser(id,userItems);
-                            findItemsByUserName(theUser).then(function(results){
-                                console.log(results);
-                                io.emit('recivedUserItems',JSON.stringify(results[0].items))
-
-                                    findItemsByRoomName(userLocation).then(function(results){
-                                        let roomId = results[0]._id;
-                                        let roomItems = results[0].items;
-                                        roomItems.push(removeItem);
-                                        updateItemsInRoom(roomId,roomItems).then(function(){
-                                            findItemsByRoomName(userLocation).then(function(results){
-                                                console.log("test" + results[0].items);
-                                                io.emit('receivedRoomItems',JSON.stringify(results[0].items));
-                                                })
-                                        });
-
-                                 });
-                              
-                            });
-                        }
-                    else
-                        {
-                            console.log("No item in inventory");
-                        }
-        });
-
-    }); // End of socket.on
+    }); // End of socket.on('addUserItem')
     
 
-        // console.log("user location " + userLocation);
 
-        // if (userLocation == "corridor"){
-        //     console.log('removed item from '+ corridor + " items");
-        //     let indexToRemove = corridor.findIndex((elem)=>elem.name==addItem);
-        //     console.log( addItem,indexToRemove );
-            
-        //     if (indexToRemove!=-1){
-        //         console.log('add items '+ addItem + " to user items");
-        //         userItems.push( new UserItem(addItem) );
-        //         corridor.splice(indexToRemove,1);
-        //         console.log("sending user items" + userItems);
-        //         io.emit('recivedUserItems', JSON.stringify(userItems));// refresh the list of user item
-        //         io.emit('receivedRoomItems', JSON.stringify(corridor));
-        //     }
-        // // refresh the list of room item
-        // } else if (userLocation == "livingroom"){
-        //     console.log('removed item from '+ livingroom + " items");
-        //     let indexToRemove = livingroom.findIndex((elem)=>elem.name==addItem);
-        //     console.log( addItem,indexToRemove );
-            
-        //     if (indexToRemove!=-1){
-        //         console.log('add items '+ addItem + " to user items");
-        //         userItems.push( new UserItem(addItem) );
-        //         livingroom.splice(indexToRemove,1);
-        //     }
-            
-        //     console.log("sending user items" + userItems);
-        //     io.emit('recivedUserItems', JSON.stringify(userItems)); // refresh the list of user item
-        //     io.emit('receivedRoomItems', JSON.stringify(livingroom)); // refresh the list of room item
+    // Drops items
+    socket.on('dropItemsInRoom', function(itemName, user, location){
+        console.log("The user: " + user + ", is trying to drop item: " + itemName + ", in room: " + location);
+        // Logic on how to drop items can be written here
 
-        // } else if (userLocation == "basement"){
-        //     console.log('removed item from '+ basement + " items");
-        //     let indexToRemove = basement.findIndex((elem)=>elem.name==addItem);
-        //     console.log( addItem,indexToRemove );
+    }); // End of socket.on('dropItemsInRoom')
 
-        //     if (indexToRemove!=-1){
-        //         basement.splice(indexToRemove,1);
-        //         console.log('add items '+ addItem + " to user items");
-        //         userItems.push( new UserItem(addItem) );
-        //     }
-            
-        //     console.log("sending user items" + userItems);
-        //     io.emit('recivedUserItems', JSON.stringify(userItems));// refresh the list of user item
-        //     io.emit('receivedRoomItems', JSON.stringify(basement));// refresh the list of room item
 
-        // } else if (userLocation == "upperfloor"){
-        //     console.log('removed item from '+ upperfloor + " items");
-        //     let indexToRemove = upperfloor.findIndex((elem)=>elem.name==addItem);
-        //     console.log( addItem,indexToRemove );
-
-        //     if (indexToRemove!=-1){
-        //         upperfloor.splice(indexToRemove,1);
-        //         console.log('add items '+ addItem + " to user items");
-        //         userItems.push( new UserItem(addItem) );
-        //     }
-        //     console.log("sending user items" + userItems);
-        //     io.emit('recivedUserItems', JSON.stringify(userItems));// refresh the list of user item
-        //     io.emit('receivedRoomItems', JSON.stringify(upperfloor));// refresh the list of room item
-        // }
-    
-
-    
 
     socket.on('removeUserItems', function(itemName,location){
         let addItem = itemName;

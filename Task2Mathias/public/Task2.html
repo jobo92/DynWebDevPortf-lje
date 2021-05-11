@@ -111,7 +111,8 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             });
 
             $('#testButton').click(function() {
-                socket.emit('testButton');
+                socket.emit('addUserItem', "Icecream","admin","CORRIDOR");
+                //socket.emit('testButton');
             });
 
 
@@ -365,7 +366,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                 socket.emit('addUserItem',item, user, room);
             }
 
-            function pickupItem(item,user,room){
+            function removeItem(item,user,room){
                 socket.emit('removeUserItems',item, user, room);
             }
             

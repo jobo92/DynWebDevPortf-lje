@@ -1,5 +1,8 @@
 $(document).ready(function() {
     
+    app.use('/static',express.static('./static/'));
+    
+
     // initial state of the game
     let state = {hp: 30, xp: 0, score: 0};
     let arrayHighScore = [];

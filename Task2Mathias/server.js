@@ -15,10 +15,12 @@ const root = __dirname;
 // Adds all mongoose variables that are needed
 const mongoose = require('mongoose');
 const Room = require('./Room.model');
+const User = require('./User.model');
 const config = { useNewUrlParser: true, useUnifiedTopology: true };
 const URI = process.env.MONGODB_URI || 'mongodb://localhost/myUniqueDB';
 mongoose.connect(URI, config);
 const db = mongoose.connection;
+
 
 // Standard template which database will use
 let rooms = [
@@ -26,6 +28,10 @@ let rooms = [
     {name: "LIVINGROOM", items: ["Ice", "Chips"]},
     {name: "BASEMENT", items: ["Soda", "Axe"]},
     {name: "UPPERFLOOR", items: ["Toy", "Ak47"]}
+]
+
+let usernameDB= [
+    {username: "admin", password: "admin", items: ["Ice","chips"], highscore:1000}
 ]
 
 
@@ -37,15 +43,23 @@ let rooms = [
 const createData = async () => {
     try {
         const results = await Room.create(rooms)
-        console.log(results)
+        const usernameresults = await User.create(usernameDB);
+        console.log(results, usernameresults)
     } catch(err) {
         console.log(error)
     }
 }
 
 // Function to find and return all values within "Room" collection in database
-const findAll = async () => {
+const findAllRooms = async () => {
     const results = await Room.find({});
+    //console.log("Found all these results: ");
+    //console.log(results);
+    return results
+}
+
+const findAllUsers = async () => {
+    const results = await User.find({});
     //console.log("Found all these results: ");
     //console.log(results);
     return results
@@ -66,6 +80,20 @@ const findItemsByRoomName = async (namePara) => {
     } 
 }
 
+const findItemsByUserName = async (namePara) => {
+    let results = await User.find({ username: namePara });
+    console.log("In the room: " + namePara + " you can find these items:");
+    //results.forEach(element => console.log(element.items));
+    
+    if (results[0] != undefined) {
+        console.log(results[0].items);
+        return results
+    } else {
+        console.log("Could not find any items :(");
+        return
+    } 
+}
+
 // Function to update the items in specific room
 const updateItemsInRoom = async (gotID, arrayItems) => {
     let results = await Room.updateOne({ _id: gotID }, { items: arrayItems });
@@ -73,9 +101,17 @@ const updateItemsInRoom = async (gotID, arrayItems) => {
     return
 }
 
+const updateItemsInUser = async (gotID, arrayItems) => {
+    let results = await User.updateOne({ _id: gotID }, { items: arrayItems });
+    console.log(results);
+    return
+}
+
+
 // Function to clear all data within the database
 const deleteAll = async () => {
     await Room.deleteMany({});
+    await User.deleteMany({});
 }
 
 // Function to convert first letter of a string to uppercase (used in database items handling)
@@ -88,31 +124,7 @@ function capFirst(str) {
     return capitalized;
 }
 
-// Functions to run when debugging
-
-//deleteAll().then((value) => { createData(); });
-//deleteAll();
-//findAll();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+var highscoreUser;
 
 //username and password section
 app.set('views', __dirname + '/views');
@@ -156,6 +168,8 @@ function AddToCurrentUsers(username){
 	this.name = username;
 }
 
+
+//bruges dette?
 let validate = require('./userList.js');
 console.log( 'validate? ' , validate('xxx','123') );
 console.log( 'validate? ' , validate('asfasgsdfg','asdfasdfsdf') );
@@ -172,6 +186,7 @@ app.post('/login',(req,res)=>{
 
 	let result = 'notCorrect';
 	let p = users[sess.email];
+    highscoreUser = sess.email;
 	if (p){
 		if (p==sess.pswd){
 			// OK
@@ -189,15 +204,13 @@ app.get('/main',(req,res)=>{
         //currentUser = sess.email;
         currentUsers.push(new AddToCurrentUsers(sess.email));
 		res.sendFile(__dirname+'/public' + '/Task2.html');
-        //old page version
-        //res.write('<h1>Hello '+sess.email+'</h1>');
-        //res.end('<a href="/logout">Logout</a>');
 	} else{
 		res.write('<h1>Please login first.</h1>');
 		res.end('<a href="/">Login</a>');
 	}
 });
 
+//write logout in the browser to logout
 app.get('/logout',(req,res)=>{
 	req.session.destroy(function(err){
 		if(err){
@@ -310,18 +323,10 @@ app.get('/jquery-3.3.1.min.js', (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
 // Start of io connection
 io.on('connection', (socket) => {
 
-    findAll().then( function(value) {
+    findAllRooms().then( function(value) {
         value.forEach(function(element) {
             io.emit('theItems', JSON.stringify(element.items), capFirst(element.name));
         });
@@ -330,12 +335,12 @@ io.on('connection', (socket) => {
     console.log('a user connected');
     io.emit('theItems', JSON.stringify(items));
     
-    socket.on('Username', function(){
-        userId= userId+1;
-        console.log("user num"+ userId);
-        console.log('sendig Username'+ currentUsers[userId].name);
-        io.emit('recivedUsername', JSON.stringify(currentUsers[userId].name));
-    }); // End of socket.on
+    // socket.on('Username', function(){
+    //     userId= userId+1;
+    //     console.log("user num"+ userId);
+    //     console.log('sendig Username'+ currentUsers[userId].name);
+    //     socket.emit('recivedUsername', JSON.stringify(currentUsers[userId].name));
+    // }); // End of socket.on
     
 
 
@@ -343,6 +348,18 @@ io.on('connection', (socket) => {
         console.log('reqitems'+ msg);
         io.emit('reqItems', JSON.stringify(items));
     }); // End of socket.on
+
+    socket.on('testButton', function(){
+        findItemsByUserName("admin").then( function(results){
+            console.log(results[0].items);
+        });
+       
+    }); // End of socket.on
+
+    //laves når vi har databasen klar---------------------------------------------------
+    // socket.on('highscoreUsername', function(){
+    //     socket.emit('receivedUsername', JSON.stringify(highscoreUser));
+    // })
 	 
 
 
@@ -392,10 +409,12 @@ io.on('connection', (socket) => {
                     if (value != undefined) {
                         socket.emit('receivedRoomItems', JSON.stringify(value[0].items), value[0].name);
                     } else { console.log("Could not find location :(") }
-                    findAll().then( function(value) {
+                    findAllRooms().then( function(value) {
                         value.forEach(function(element) {
                             io.emit('theItems', JSON.stringify(element.items), capFirst(element.name));
+                            
                         });
+                        findAllUsers();
                     })
                 })
             })
@@ -453,8 +472,9 @@ io.on('connection', (socket) => {
 
 
 
-    socket.on('addUserItem', function(itemName,location){
+    socket.on('addUserItem', function(itemName,user,location){
         let addItem = itemName;
+        let theUser = user;
         let userLocation =location; 
     
 

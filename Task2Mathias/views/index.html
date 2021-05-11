@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Session Management in NodeJS using Express4.2</title>
+<title>Login page</title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
 <script>
 $(document).ready(()=>{
@@ -13,7 +13,6 @@ $(document).ready(()=>{
         $.post("http://localhost:9999/login",
                 {email:myEmail,pass:myPass},
                 (data)=>{
-                    //alert( data );
                     if(data==='everythingOK'){
                         window.location.href="/main";
                     } else {

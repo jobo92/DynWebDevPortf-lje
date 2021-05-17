@@ -2,14 +2,19 @@
 <head>
 <title>Login page</title>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> 
+<script src="/socket.io/socket.io.js"></script>
 <script>
 $(document).ready(()=>{
     let email,pass;
+    var socket = io();
+
     $('#submit').click(function(){
+
+        //console.log(socket);
         myEmail = $('#email').val();
         myPass = $('#password').val();
         // Perform some validation here ...
-        
+
         $.post("http://localhost:9999/login",
                 {email:myEmail,pass:myPass},
                 (data)=>{
@@ -21,6 +26,14 @@ $(document).ready(()=>{
         });
 
     });
+
+    //når man trykker på resetDatabaseknappen
+    $('#resetDatabase').click(function() {
+                console.log("Reset")
+                socket.emit('resetDatabase', "Corridor", "admin");
+            });
+    
+
 });
 </script>
 </head>
@@ -29,5 +42,7 @@ $(document).ready(()=>{
 <input type="text" size="40" placeholder="Type your email" id="email"><br />
 <input type="password" size="40" placeholder="Type your password" id="password"><br />
 <input type="button" value="Submit" id="submit">
+<br></br>
+<button type='button' id='resetDatabase'>Reset Database</button>
 </body>
 </html>

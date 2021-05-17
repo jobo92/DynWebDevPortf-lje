@@ -33,10 +33,9 @@ let rooms = [
 
 // Standard template which database will use to create users
 let usernameDB= [
-    {username: "admin", password: "admin", items: ["Ice","Chips","Moonblade"], highscore:1000}
+    {username: "admin", password: "admin", items: ["Ice","Chips","Moonblade"], highscore: 1000},
+    {username: "xxx", password: "123", items: ["Kakao"], highscore: 1}
 ]
-
-
 
 // Function to create schema values, by using the array "rooms"
 const createData = async () => {
@@ -188,12 +187,7 @@ app.get('/',(req,res)=>{
 	}
 });
 
-let users = {
-    'admin':'admin',
-	'xxx':'123',
-	'abc':'blabla',
-	'gru':'shrikingmoon'
-};
+
 
 let userId =-1;
 let currentUsers=[];
@@ -201,12 +195,6 @@ function AddToCurrentUsers(username){
 	this.name = username;
 }
 
-
-//bruges dette?
-let validate = require('./userList.js');
-console.log( 'validate? ' , validate('xxx','123') );
-console.log( 'validate? ' , validate('asfasgsdfg','asdfasdfsdf') );
-console.log( 'validate? ' , validate('xxx','12345') );
 
 
 app.post('/login',(req,res)=>{
@@ -218,17 +206,29 @@ app.post('/login',(req,res)=>{
 	console.log('User submitted this data:',sess);
 
 	let result = 'notCorrect';
-	let p = users[sess.email];
-    highscoreUser = sess.email;
-	if (p){
-		if (p==sess.pswd){
-			// OK
-			result = 'everythingOK';
-		}
-	}
-	res.end( result );
+
+    findItemsByUserName(sess.email).then( function(user) {
+        if (user != undefined) {
+
+            if (user[0].password == sess.pswd) {
+                // OK
+                result = 'everythingOK';
+            }
+            
+            // Code
+        } else { console.log("Could not find user :(") }
+
+        res.end(result);
+    })
 
 });
+
+
+
+
+
+
+
 
 //checking if the user is logged in 
 app.get('/main',(req,res)=>{
@@ -440,6 +440,7 @@ io.on('connection', (socket) => {
 
     // When the server gets the reset call it will reset the database and send out the newly created items
     socket.on('resetDatabase', function(location, user){
+        console.log("Database Reset")
         let capLoc = location.toUpperCase();
 
         deleteAll().then( function() {

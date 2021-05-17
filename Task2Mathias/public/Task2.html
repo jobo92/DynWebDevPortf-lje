@@ -5,6 +5,7 @@
         width:20%; float: right;
         margin: 0 0 15px 10px;
         clear: right;
+        visibility: hidden;
     }
 #status {
 	height: 150px;
@@ -35,7 +36,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
     <div class='itemList' id="Upperfloor"></div>
 
     <div id="userNameField"></div>
-    <div id="userItemsHeadline"><h3 > User items</h3>
+    <div id="userItemsHeadline"><h2 > Your items</h2>
             <div id="userItemList">
             </div>
         </div>
@@ -57,12 +58,10 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
 		<button type="button" id="enterBtn">ENTER</button>
 
         <br></br>
-        <form action=''>
-            <input id='formInput' autocomplete='off' /><button>Command Database</button>
-        </form>
+        
 
-        <button type='button' id='resetDatabase'>Reset Database</button>
-        <button type='button' id='testButton'>Test Button</button>
+        <!--<button type='button' id='resetDatabase'>Reset Database</button>
+        <button type='button' id='testButton'>Test Button</button>-->
 
 	</p>
                 
@@ -86,26 +85,25 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             let gameIsRunning = true;
             let chanceToFind = 15;
             let WhereIsTheUser = "corridor";
-            
+            let recivedUsernameFromServer =false;
             var socket = io();
             
-            socket.emit('requestUsername'); 
+            
+            socket.emit('requestUsername');
+            socket.emit('requestFirstHighscore');
             
             socket.on('recivedUsername', function(itemsString){
+                if(recivedUsernameFromServer==false)
+                {  
                 username = JSON.parse(itemsString);
                 $('#userNameField').html("Welcome, your username is: " + username);
                 console.log("updated username" + username);
+                recivedUsernameFromServer =true;   
+                }
+                
+                
             });
             
-
-            // command button
-            $('form').submit(function(e){
-                e.preventDefault(); // Prevents page reloading
-                let input = $('#formInput').val()
-                socket.emit('command', input);
-                $('#formInput').val('');
-                return false;
-            });
 
             //når man trykker på resetDatabaseknappen
             $('#resetDatabase').click(function() {
@@ -146,7 +144,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             //         $('#highscore').append(elements);   
             //  }
             
-            // function updateHighscore() {
+            // function uhpdateHighscore() {
             //      let newUser = true;
             //      let addNewUser = true;
             //      let elements = $();
@@ -300,8 +298,8 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             
             
             function quit(){
-                //updateHighscore();
-                console.log('test' +state.score);
+                updateHighscore();
+                /*console.log('test' +state.score);
                  $.ajax({
                     type: "POST",
                     url: "http://localhost:9999/",
@@ -309,7 +307,9 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                     data: JSON.stringify({username: username, bestScore: state.score})
                 }).done(function ( data ) {
                     console.log( data);
-                })
+                })*/
+                
+                socket.emit ()
             }
             
         const status = $('#status')[0];
@@ -334,9 +334,23 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             });
             
             
+            function updateHighscore () {
+                console.log("test html" + state.score);
+                socket.emit('updateHighscore', username, state.score)
+            }
             
+            socket.on('allUsersHighscores', function(highscorelist){
+                console.log("highscore " +highscorelist);
+                 let highscore = JSON.parse(highscorelist);
+                                $('#highscore').empty();
+                                highscore.forEach((elem)=>{
+                                    $('#highscore').append($('<li>').text(elem.username + " " + elem.highscore));
+                                      })
 
+            });
 
+            
+            
             
             function encounterMonster() {
                 let dice = Math.floor(Math.random()*5)+1;
@@ -348,6 +362,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                     $('#status').append( '<br/>You spotted a monster in the room and decided to fight it');
                     $('#status').append( '<br/>You lost ' + lostHp + ' hp');  
                 }
+                updateHigscore();
             }
 
             function updateRoomItem(itemlist){
@@ -384,19 +399,25 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
             }
             
             
-            socket.on('receivedRoomItems', function(itemsString){
+            socket.on('receivedRoomItems', function(itemsString,room){
+                // det virker ikke første gang efter man har logget ind
+                /*console.log("Room names: room, where: " + room +"  "+ WhereIsTheUser.toUpperCase());
+                if (room == WhereIsTheUser.toUpperCase(){
+                    updateRoomItem(itemsString);
+                    }*/
+                
                 updateRoomItem(itemsString);
             });
             
             socket.on('recivedUserItems', function(itemsString){
                updateUserItems(itemsString)
             });
-            
+        
             
             
             $('#enterBtn').click(function(){
                 $('#formInput').val('');
-                $('#status').html( 'Your status is now: ' + JSON.stringify(state));
+                
                 if (state.hp <=0)
                     {
                         $('#status').append( '<br/>You ran out of hp and died, most unfortunate :( ');
@@ -453,6 +474,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                             $('#status').append('<br/>You found nothing ...');
                             state.hp -= 1;
                         }
+                        updateHighscore();
                     } 
                         console.log(chanceToFind);
                         break;
@@ -554,6 +576,7 @@ body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSyst
                 }
             }
         }
+                $('#status').html( 'Your status is now: ' + JSON.stringify(state));
     });
             
         // When you press enter on the textfield, 

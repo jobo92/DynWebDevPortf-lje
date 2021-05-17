@@ -13,9 +13,10 @@ $(document).ready(()=>{
         //console.log(socket);
         myEmail = $('#email').val();
         myPass = $('#password').val();
-        // Perform some validation here ...
+        
+        socket.emit('CreateNewUser', myEmail, myPass);
 
-        $.post("http://localhost:9999/login",
+        /*$.post("http://localhost:9999/login",
                 {email:myEmail,pass:myPass},
                 (data)=>{
                     if(data==='everythingOK'){
@@ -23,30 +24,29 @@ $(document).ready(()=>{
                     } else {
                         alert('You are NOT logged-in!\nWrong user or password.');
                     }
+        });*/
+
         });
+       socket.on('createdUser', function(msg){
+        prompt("User created");
+    }); // End of socket.on
+    
+     socket.on('UserExsisted', function(msg){
+       prompt("user already exist");
+    }); // End of socket.on
 
-    });
 
-    //når man trykker på resetDatabaseknappen
-    $('#resetDatabase').click(function() {
-                console.log("Reset")
-                socket.emit('resetDatabase', "Corridor", "admin");
-            });
-     $('#createNewUser').click(function() {
-                console.log("create user")
-                 window.location.href="/createUser";
-            });
     
 
 });
 </script>
 </head>
 <body>
-<h1> <%= title%></h1>
+<h1> Create New User</h1>
 <input type="text" size="40" placeholder="Type your email" id="email"><br />
 <input type="password" size="40" placeholder="Type your password" id="password"><br />
-<input type="button" value="Submit" id="submit">
+<input type="button" value="Create new user " id="submit">
 <br></br>
-<button type='button' id='createNewUser'>Create New User</button>
+
 </body>
 </html>

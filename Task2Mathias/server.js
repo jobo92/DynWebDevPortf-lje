@@ -48,6 +48,15 @@ const createData = async () => {
     }
 }
 
+
+const createNewUser = async (newUserName, newUserPassword) => {
+    var user = await User({ username: newUserName, password: newUserPassword, items: [], highscore: 0 });
+    await user.save();
+    //console.log(user);
+    findAllUsers();
+    return
+}
+
 // Function to find and return all values within "Room" collection in database
 const findAllRooms = async () => {
     const results = await Room.find({});
@@ -61,6 +70,13 @@ const findAllUsers = async () => {
     //console.log("Found all these results: ");
     console.log(results);
     return results
+}
+
+const sendingAllHighscores = async () => {
+    findAllUsers().then(function(results){
+        console.log("sending highscore form server");
+        io.emit("allUsersHighscores",JSON.stringify(results));
+    })
 }
 
 // Function to find items in rooms based on the name of the room then return the room document
@@ -90,6 +106,15 @@ const findItemsByUserName = async (namePara) => {
         console.log("Could not find any items on player:(");
         return
     } 
+}
+
+
+// Function to update the items in specific room
+const updateHighscore = async (gotID, toUpdatehighscore) => {
+    let results = await User.updateOne({ _id: gotID }, { highscore:toUpdatehighscore  });
+    console.log(results);
+    sendingAllHighscores();
+    return
 }
 
 // Function to update the items in specific room
@@ -223,13 +248,6 @@ app.post('/login',(req,res)=>{
 
 });
 
-
-
-
-
-
-
-
 //checking if the user is logged in 
 app.get('/main',(req,res)=>{
 	let sess=req.session;
@@ -241,6 +259,12 @@ app.get('/main',(req,res)=>{
 		res.write('<h1>Please login first.</h1>');
 		res.end('<a href="/">Login</a>');
 	}
+});
+
+app.get('/createUser',(req,res)=>{
+	let sess=req.session;
+    console.log (__dirname+'/public' + '/createUser.html');
+	res.sendFile(__dirname+'/public' + '/createUser.html');
 });
 
 //write logout in the browser to logout
@@ -368,6 +392,42 @@ io.on('connection', (socket) => {
     
     console.log('a user connected');
     io.emit('theItems', JSON.stringify(items));
+    
+    socket.on('CreateNewUser', function(newEmail, newPassword){
+        findItemsByUserName(newEmail).then(function(value){
+            if (value== undefined)
+                {
+                    console.log("createing user");
+                   createNewUser(newEmail,newPassword); 
+                    socket.emit('createdUser');
+                }
+            else{
+                 socket.emit('UserExsisted');
+            }
+        })
+       
+    }); // End of socket.on
+    
+    
+    socket.on ('requestFirstHighscore', function(){
+        sendingAllHighscores();
+    });
+    
+    socket.on('updateHighscore', function(username, score){
+        console.log("first high");
+         findItemsByUserName(username).then(function(results){
+            let userId = results[0]._id;
+            let userHighscore = results[0].highscore;
+             console.log("userhighscore "+userHighscore + "score " + score);
+             
+             if (score > userHighscore)
+                 {
+                     console.log("updating highscore");
+                     updateHighscore(userId,score);
+                    socket.emit('allHighscores')
+                 }
+            });
+    });// End of socket.on
     
      socket.on('requestUsername', function(){
         userId= userId+1;
@@ -528,11 +588,39 @@ io.on('connection', (socket) => {
 
 
     // Drops items
-    socket.on('dropItemsInRoom', function(itemName, user, location){
+    // Logic on how to drop items can be written here
+    socket.on('dropItemsInRoom', function(recvItemName, user, location){
+        let itemName= capFirst(recvItemName);
         console.log("The user: " + user + ", is trying to drop item: " + itemName + ", in room: " + location);
-        // Logic on how to drop items can be written here
+        
+         findItemsByUserName(user).then(function(results){
+            let userId = results[0]._id;
+            let userItems = results[0].items;
+            const index = userItems.indexOf(itemName); 
+            if (index > -1) { 
+                userItems.splice(index, 1);
+               
+                
+                updateItemsInUser(userId,userItems).then(function(){
+                     findItemsByRoomName(location.toUpperCase()).then(function(results){
+                        let newItems = results[0].items;
+                        let roomId = results[0]._id;
+                         newItems.push(itemName);
+                        updateItemsInRoom(roomId,newItems).then(function(){
+                            sendSingleRoom(location.toUpperCase());
+                             sendUserItems(socket,user);
+                            
+                        });
+                         
+                });
+            });
+             
+         }
+        
 
-    }); // End of socket.on('dropItemsInRoom')
+        });
+    });
+        // End of socket.on('dropItemsInRoom')
 
 
 
